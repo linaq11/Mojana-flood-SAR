@@ -48,3 +48,7 @@ Both hypotheses, all months, the calibrated n, the gauge conversion that was use
 ## Clarification, 2026-11-20, before any SWOT value was read
 
 SWOT nodes are taken from the SWOT River Database (SWORD) version 16 and read through the Hydrocron API, collection `SWOT_L2_HR_RiverSP_2.0`, whose node identifiers follow SWORD v16. Only observations with `node_q` of 0 or 1 (good or suspect) and a real `wse` value (not the fill value) are used. Each gauge is matched to the nodes within 2 km, all of them, on the same calendar day; the datum is the median over all matched node-days of that gauge.
+
+## Clarification, 2026-11-20, before measuring the breach width
+
+The breach width is measured along a line digitized on the dike crest on the last cloud-free Sentinel-2 image before 27 August 2021, 1.5 km to each side of the dike cell nearest to the mapped breach. On every Sentinel-2 L2A scene with less than 20% cloud within 1 km of the breach (scene classification), the width is the length of the longest run of open water (MNDWI above 0) along that line. The monthly width is the median of the month's scenes. Months without such a scene take the previous width, as stated above. Planet images are used only if a month from August 2021 to December 2024 has no Sentinel-2 value.
