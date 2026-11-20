@@ -24,3 +24,24 @@ def test_events_fall_inside_the_series_and_have_maps_nearby():
     maps = json.loads((ROOT / "docs" / "data" / "maps.json").read_text())["months"]
     for e in s["events"]:
         assert e["m"] in months and e["m"] in maps
+
+
+def _grid():
+    return json.loads((ROOT / "docs" / "sandbox" / "grid.json").read_text())
+
+
+def _breach_to_river_cells(g):
+    import numpy as np
+    upa = np.array(g["upa"]).reshape(g["ny"], g["nx"])
+    x = (g["breach"][0] - g["box"][0]) / g["step"]
+    y = (g["box"][3] - g["breach"][1]) / g["step"]
+    ry, rx = np.nonzero(upa >= 40000)          # the river threshold used by docs/sandbox/index.html
+    return float(np.hypot(rx + 0.5 - x, ry + 0.5 - y).min())
+
+
+def test_sandbox_grid_is_complete_and_the_breach_sits_on_the_cauca():
+    g = _grid()
+    n = g["nx"] * g["ny"]
+    assert len(g["z"]) == len(g["occ"]) == len(g["upa"]) == n
+    assert min(g["z"]) > -100                  # no -9999 holes in the terrain
+    assert _breach_to_river_cells(g) <= 8      # within about 2 km of the river channel

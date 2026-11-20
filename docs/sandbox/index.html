@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La Mojana Flood Sandbox</title>
+<meta name="description" content="A digital sand table of La Mojana: open the Cara de Gato breach, raise the Cauca River and reshape the ground to see where the water goes. A demonstration, not a validated model.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+:root{
+  --bg:#06141c; --glass:rgba(8,26,36,.74); --glass-strong:rgba(7,22,31,.9); --line:rgba(190,228,240,.13);
+  --ink:#e6f4f8; --muted:#97b9c4; --faint:#678995; --gold1:#7fd8ea; --gold2:#4fbcd4;
+  --flood:#f0a53a; --perm:#2c78b0; --event:#ff6f61;
+  --chip:rgba(255,255,255,.04); --shadow:0 18px 50px rgba(0,0,0,.42);
+  --on:rgba(79,188,212,.15); --on-line:rgba(79,188,212,.55); --attrib:rgba(5,16,22,.72);
+  --display:"Bricolage Grotesque","Manrope",system-ui,sans-serif; --body:"Manrope",system-ui,sans-serif;
+}
+:root[data-theme="light"]{
+  --bg:#d9edf1; --glass:rgba(226,243,247,.8); --glass-strong:rgba(219,239,244,.92); --line:rgba(14,60,78,.16);
+  --ink:#0b2630; --muted:#355a67; --faint:#58808c; --gold1:#0e7590; --gold2:#0b5f75;
+  --flood:#c2780c; --perm:#1b5582; --event:#c23b30;
+  --chip:rgba(255,255,255,.5); --shadow:0 18px 50px rgba(14,60,78,.18);
+  --on:rgba(14,117,144,.13); --on-line:rgba(14,117,144,.5); --attrib:rgba(226,243,247,.85);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
+#map{position:fixed;inset:0}
+#map.tool{cursor:crosshair}
+#sim{display:none}
+.ui{position:fixed;inset:0;pointer-events:none;padding:16px;display:flex;gap:16px}
+.panel{pointer-events:auto;width:min(410px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--glass);
+  backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--line);
+  border-radius:18px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:15px}
+.top{display:flex;gap:8px;flex-wrap:wrap}
+.toggle{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--chip)}
+.toggle button{font:600 12.5px var(--body);color:var(--muted);background:none;border:0;border-radius:999px;padding:6px 12px;cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--on);color:var(--gold1);box-shadow:inset 0 0 0 1px var(--on-line)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--gold1);outline-offset:2px}
+h1{font:800 28px/1.04 var(--display);margin:0;text-wrap:balance}
+.sub{color:var(--gold2);font-weight:600;font-size:12.5px;margin-top:6px}
+.lede{color:var(--muted);margin:0}
+.label{font-weight:700;font-size:12.5px;color:var(--faint);margin:0 0 7px}
+.big{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.big div{border-top:1px solid var(--line);padding-top:8px}
+.big b{display:block;font:800 34px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--flood)}
+.big span{color:var(--muted);font-size:12.5px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{font:700 13px var(--body);color:var(--gold1);background:var(--on);border:1px solid var(--on-line);border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:none;color:var(--muted);border-color:var(--line)}
+.btn.breach[aria-pressed="true"]{color:var(--event);border-color:var(--event);background:color-mix(in srgb,var(--event) 12%,transparent)}
+.stage{display:flex;align-items:center;gap:10px}
+.stage output{font:800 20px var(--display);font-variant-numeric:tabular-nums;min-width:62px;text-align:right}
+input[type=range]{flex:1;accent-color:var(--flood)}
+.hint{color:var(--faint);font-size:12px;margin:6px 0 0}
+.check{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;cursor:pointer}
+.check input{accent-color:var(--flood);width:16px;height:16px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.card{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--glass-strong)}
+.card h2{font:700 16px var(--display);margin:0 0 4px}
+.card p{font-size:12.5px}
+.back{color:var(--gold1);font-weight:700;font-size:13px;text-decoration:none}
+.back:hover{text-decoration:underline}
+.credits{color:var(--faint);font-size:11px;margin:0} .credits a{color:var(--muted)}
+.maplibregl-ctrl-attrib{background:var(--attrib)!important;color:var(--muted)} .maplibregl-ctrl-attrib a{color:var(--muted)!important}
+@media (max-width:900px){
+  .ui{flex-direction:column;justify-content:flex-end;padding:0}
+  .panel{width:100%;max-height:50vh;border-radius:18px 18px 0 0}
+  h1{font-size:23px} .big b{font-size:26px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="sim"></canvas>
+<div id="map" role="img" aria-label="Map of La Mojana with the simulated flood water"></div>
+<div class="ui">
+<aside class="panel">
+  <div class="top">
+    <div class="toggle" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true">English</button><button data-lang="es" aria-pressed="false">Español</button></div>
+    <div class="toggle" role="group" aria-label="Theme"><button data-th="dark" aria-pressed="true" data-i18n="dark">Dark</button><button data-th="light" aria-pressed="false" data-i18n="light">Light</button></div>
+  </div>
+  <div><h1 data-i18n="title"></h1><div class="sub" data-i18n="sub"></div></div>
+  <p class="lede" data-i18n="lede"></p>
+  <div class="big"><div><b id="tDays">0</b><span data-i18n="days"></span></div><div><b id="area">0</b><span data-i18n="km"></span></div></div>
+  <div class="row">
+    <button class="btn" id="run"></button>
+    <button class="btn breach" id="breach" aria-pressed="true"></button>
+    <button class="btn ghost" id="reset" data-i18n="reset"></button>
+  </div>
+  <div>
+    <p class="label" id="stageLabel" data-i18n="stage"></p>
+    <div class="stage"><input type="range" id="stage" min="0" max="6" step="0.5" value="3" aria-labelledby="stageLabel"><output id="stageOut" for="stage"></output></div>
+    <p class="hint" data-i18n="stageHint"></p>
+  </div>
+  <div>
+    <p class="label" data-i18n="toolT"></p>
+    <div class="toggle" role="group" id="tools" aria-label="Tool">
+      <button data-tool="pan" aria-pressed="true" data-i18n="pan"></button><button data-tool="raise" aria-pressed="false" data-i18n="raise"></button><button data-tool="dig" aria-pressed="false" data-i18n="dig"></button><button data-tool="water" aria-pressed="false" data-i18n="water"></button>
+    </div>
+    <p class="hint" data-i18n="toolHint"></p>
+  </div>
+  <div class="row">
+    <div class="toggle" role="group" aria-label="Ground"><button data-view="relief" aria-pressed="true" data-i18n="relief"></button><button data-view="sat" aria-pressed="false" data-i18n="sat"></button></div>
+    <label class="check"><input type="checkbox" id="obs"><span data-i18n="obs"></span></label>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="card"><h2 data-i18n="whatT"></h2><p class="lede" data-i18n="what"></p></div>
+  <a class="back" href="../" data-i18n="back"></a>
+  <p class="credits" id="credits"></p>
+</aside>
+</div>
+<script>
+const T={
+ en:{dark:"Dark",light:"Light",title:"La Mojana flood sandbox",sub:"Cauca River and the Cara de Gato breach, Colombia",
+  lede:"A digital sand table of the real terrain. The Cauca runs behind a dike; open the breach, raise the river and reshape the ground to see where the water goes.",
+  days:"days simulated",km:"km² under more than 10 cm of new water",
+  run:"Run",pause:"Pause",open:"Breach open",closed:"Breach closed",reset:"Start again",
+  stage:"River level above normal",stageHint:"The dike stands 4 m above the normal river level. Above that the river overtops it everywhere.",
+  toolT:"Hand tool",pan:"Move map",raise:"Raise ground",dig:"Dig",water:"Pour water",
+  toolHint:"Drag on the map to build a dike, dig a channel or pour water.",
+  relief:"Relief",sat:"Satellite",obs:"Radar flood, December 2022, in grey",
+  lg_river:"River and permanent water",lg_sim:"Simulated flood water",lg_dike:"Dike",lg_breach:"Breach",
+  whatT:"A demonstration, not a model of what happened",
+  what:"Water moves with the local inertial equations (Bates et al., 2010) on a 275 m grid of bare-earth terrain. The dike is drawn along every river bank, the breach is one grid cell at the mapped location of Cara de Gato, and the river is held at a fixed level. There is no rain, no infiltration, no real river hydrograph and no calibration, so the times and areas are not predictions. The radar layer shows what Sentinel-1 actually saw at the peak, for comparison by eye.",
+  back:"Back to the flood monitor",
+  credits:'Terrain: FABDEM (Hawker et al., 2022), from Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018, provided under Copernicus by the European Union and ESA; non-commercial use. River channels: MERIT Hydro (Yamazaki et al., 2019). Breach location: © OpenStreetMap contributors. Permanent water: JRC Global Surface Water. Radar: Copernicus Sentinel-1. Imagery: Esri World Imagery. <a href="https://github.com/linaq11/Mojana-flood-SAR">Code and method</a>, Lina María Quintero Fonseca.'},
+ es:{dark:"Oscuro",light:"Claro",title:"Caja de arena de la inundación de La Mojana",sub:"Río Cauca y la ruptura de Cara de Gato, Colombia",
+  lede:"Una mesa de arena digital con el terreno real. El Cauca corre detrás de un dique: abre la ruptura, sube el río y moldea el terreno para ver hacia dónde va el agua.",
+  days:"días simulados",km:"km² con más de 10 cm de agua nueva",
+  run:"Correr",pause:"Pausa",open:"Ruptura abierta",closed:"Ruptura cerrada",reset:"Empezar de nuevo",
+  stage:"Nivel del río sobre lo normal",stageHint:"El dique está 4 m por encima del nivel normal del río. Por encima de eso, el río lo desborda en todas partes.",
+  toolT:"Herramienta",pan:"Mover mapa",raise:"Subir terreno",dig:"Excavar",water:"Echar agua",
+  toolHint:"Arrastra sobre el mapa para levantar un dique, abrir un canal o echar agua.",
+  relief:"Relieve",sat:"Satélite",obs:"Inundación vista por radar, diciembre de 2022, en gris",
+  lg_river:"Río y agua permanente",lg_sim:"Agua de la inundación simulada",lg_dike:"Dique",lg_breach:"Ruptura",
+  whatT:"Una demostración, no un modelo de lo que pasó",
+  what:"El agua se mueve con las ecuaciones inerciales locales (Bates et al., 2010) sobre una grilla de 275 m de terreno sin vegetación ni edificios. El dique se dibuja a lo largo de todas las orillas, la ruptura es una celda en la ubicación cartografiada de Cara de Gato y el río se mantiene a un nivel fijo. No hay lluvia, infiltración, hidrograma real del río ni calibración, así que los tiempos y las áreas no son predicciones. La capa de radar muestra lo que Sentinel-1 vio de verdad en el máximo, para comparar a ojo.",
+  back:"Volver al monitor de inundación",
+  credits:'Terreno: FABDEM (Hawker et al., 2022), a partir de Copernicus WorldDEM-30 © DLR e.V. 2010-2014 y © Airbus Defence and Space GmbH 2014-2018, provisto bajo Copernicus por la Unión Europea y la ESA; uso no comercial. Cauces: MERIT Hydro (Yamazaki et al., 2019). Ubicación de la ruptura: © colaboradores de OpenStreetMap. Agua permanente: JRC Global Surface Water. Radar: Copernicus Sentinel-1. Imagen: Esri World Imagery. <a href="https://github.com/linaq11/Mojana-flood-SAR">Código y método</a>, Lina María Quintero Fonseca.'}
+};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let lang=store.get("moj-lang")||"en", theme=store.get("moj-theme")||"dark";
+document.documentElement.setAttribute("data-theme",theme);
+const t=k=>T[lang][k];
+const loc=()=>lang==="es"?"es-CO":"en-US";
+const num=(v,d=0)=>new Intl.NumberFormat(loc(),{minimumFractionDigits:d,maximumFractionDigits:d}).format(v);
+const $=id=>document.getElementById(id);
+
+// ---------------- model ----------------
+const RIVER_UPA=40000;     // km2 of drainage area: the Cauca downstream of Caucasia and the Magdalena
+const CREST=4;             // dike crest above the normal river level, m
+const G=9.81, N=0.05, DX=276, WET=0.1;
+let S;                     // all model state
+function setup(g){
+  const nx=g.nx, ny=g.ny, n=nx*ny, z0=Float32Array.from(g.z), upa=g.upa, occ=g.occ;
+  const river=new Uint8Array(n); for(let i=0;i<n;i++) river[i]=upa[i]>=RIVER_UPA?1:0;
+  // normal river level: running median of the terrain in downstream order (drainage area rising), never rising downstream
+  const ids=[]; for(let i=0;i<n;i++) if(river[i]) ids.push(i);
+  ids.sort((a,b)=>upa[a]-upa[b]||a-b);
+  const base=new Float32Array(n).fill(NaN); let low=Infinity;
+  for(let k=0;k<ids.length;k++){
+    const w=[]; for(let j=Math.max(0,k-10);j<=Math.min(ids.length-1,k+10);j++) w.push(z0[ids[j]]);
+    w.sort((a,b)=>a-b); low=Math.min(low,w[w.length>>1]); base[ids[k]]=low;
+  }
+  // dike: land cells that share an edge with a river cell; water moves only across edges, so this closes the river
+  const dike=new Uint8Array(n), crest=new Float32Array(n).fill(-Infinity);
+  for(let y=1;y<ny-1;y++) for(let x=1;x<nx-1;x++){const i=y*nx+x; if(river[i]) continue;
+    for(const j of [i-1,i+1,i-nx,i+nx]) if(river[j]){dike[i]=1; crest[i]=Math.max(crest[i],base[j]+CREST);}}
+  // breach: the dike cell nearest to the mapped location of Cara de Gato
+  const bx=(g.breach[0]-g.box[0])/g.step, by=(g.box[3]-g.breach[1])/g.step; let br=-1, bd=Infinity;
+  for(let i=0;i<n;i++) if(dike[i]){const d=(i%nx-bx)**2+(Math.floor(i/nx)-by)**2; if(d<bd){bd=d;br=i;}}
+  const zGround=new Float32Array(n);   // terrain without the dike, river beds 1 m below the normal level
+  for(let i=0;i<n;i++) zGround[i]=river[i]?base[i]-1:z0[i];
+  S={g,nx,ny,n,z0,occ,river,base,dike,crest,br,zGround,rids:Int32Array.from(ids),z:new Float32Array(n),h:new Float32Array(n),
+     qx:new Float32Array(n),qy:new Float32Array(n),out:new Float32Array(n),t:0,hland:0,stage:3,open:true,shade:new Float32Array(n)};
+  resetModel();
+}
+function resetModel(){
+  const s=S; for(let i=0;i<s.n;i++){s.z[i]=s.dike[i]?Math.max(s.zGround[i],s.crest[i]):s.zGround[i]; s.h[i]=0; s.qx[i]=0; s.qy[i]=0;}
+  applyBreach(); s.t=0; s.hland=0; fillRiver(); shadeAll();
+}
+function applyBreach(){const s=S, i=s.br; s.z[i]=s.open?s.zGround[i]:Math.max(s.zGround[i],s.crest[i]);}
+function fillRiver(){const s=S; for(const i of s.rids) s.h[i]=Math.max(0,s.base[i]+s.stage-s.z[i]);}
+function step(){
+  const {nx,ny,n,z,h,qx,qy,out,river}=S;
+  fillRiver();
+  for(let x=0;x<nx;x++){h[x]=0;h[(ny-1)*nx+x]=0;} for(let y=0;y<ny;y++){h[y*nx]=0;h[y*nx+nx-1]=0;}   // open edges drain
+  let hmax=0.01; for(const i of S.rids) if(h[i]>hmax) hmax=h[i]; if(S.hland>hmax) hmax=S.hland;   // deepest water: river cells now, land at the end of the last step
+  const dt=Math.min(30,0.7*DX/Math.sqrt(G*hmax));
+  // fluxes per metre of width between each cell and its east (qx) and south (qy) neighbour
+  // most of the plain is dry, so faces between two dry cells are skipped
+  for(let y=0;y<ny;y++) for(let x=0;x<nx;x++){const i=y*nx+x, hi=h[i], e1=z[i]+hi;
+    if(x<nx-1){const j=i+1; if(hi>0||h[j]>0){const e2=z[j]+h[j], hf=Math.max(e1,e2)-Math.max(z[i],z[j]);
+      qx[i]=hf>1e-3?(qx[i]-G*hf*dt*(e2-e1)/DX)/(1+G*dt*N*N*Math.abs(qx[i])/Math.pow(hf,7/3)):0;} else qx[i]=0;}
+    if(y<ny-1){const j=i+nx; if(hi>0||h[j]>0){const e2=z[j]+h[j], hf=Math.max(e1,e2)-Math.max(z[i],z[j]);
+      qy[i]=hf>1e-3?(qy[i]-G*hf*dt*(e2-e1)/DX)/(1+G*dt*N*N*Math.abs(qy[i])/Math.pow(hf,7/3)):0;} else qy[i]=0;}}
+  // no cell may lose more water than it holds
+  out.fill(0);
+  for(let i=0;i<n;i++){const a=qx[i], b=qy[i];
+    if(a>0) out[i]+=a; else if(a<0) out[i+1]-=a;
+    if(b>0) out[i]+=b; else if(b<0) out[i+nx]-=b;}
+  for(let i=0;i<n;i++) out[i]=out[i]>0?Math.min(1,h[i]*DX/(dt*out[i])):1;
+  // qx is zero on the last column and qy on the last row, so no edge tests are needed below
+  for(let i=0;i<n;i++){const a=qx[i], b=qy[i];
+    if(a>0) qx[i]=a*out[i]; else if(a<0) qx[i]=a*out[i+1];
+    if(b>0) qy[i]=b*out[i]; else if(b<0) qy[i]=b*out[i+nx];}
+  let hl=0; const k=dt/DX;
+  for(let i=0;i<n;i++){const d=(i>0?qx[i-1]:0)-qx[i]+(i>=nx?qy[i-nx]:0)-qy[i];
+    if(d!==0){const v=h[i]+k*d; h[i]=v>0?v:0;}
+    if(h[i]>hl&&!river[i]) hl=h[i];}
+  S.hland=hl; S.t+=dt;
+}
+function floodedKm2(){const s=S; let c=0; for(let i=0;i<s.n;i++) if(s.h[i]>WET&&!s.river[i]&&s.occ[i]<50) c++; return c*DX*DX/1e6;}
+
+// ---------------- drawing ----------------
+const RAMP=[[0,[38,70,60]],[25,[62,104,74]],[40,[112,138,86]],[80,[160,152,104]],[200,[138,114,86]],[700,[214,206,192]]];
+function rampColor(v){for(let k=1;k<RAMP.length;k++) if(v<=RAMP[k][0]||k===RAMP.length-1){const [a,ca]=RAMP[k-1],[b,cb]=RAMP[k],f=Math.max(0,Math.min(1,(v-a)/(b-a)));return ca.map((c,j)=>c+(cb[j]-c)*f);}}
+function shadeCell(i){const {nx,ny,z}=S, x=i%nx, y=(i/nx)|0;
+  const zl=z[y*nx+Math.max(0,x-1)], zr=z[y*nx+Math.min(nx-1,x+1)], zu=z[Math.max(0,y-1)*nx+x], zd=z[Math.min(ny-1,y+1)*nx+x];
+  const gx=(zr-zl)/(2*DX)*6, gy=(zd-zu)/(2*DX)*6, l=(-gx*-0.6+gy*-0.6+1)/Math.sqrt(gx*gx+gy*gy+1)/Math.sqrt(1.72);   // light from the north-west, slopes exaggerated 6 times
+  S.shade[i]=Math.max(0.45,Math.min(1.25,0.35+0.9*l));}
+function shadeAll(){for(let i=0;i<S.n;i++) shadeCell(i);}
+let view="relief", img, ctx;
+function draw(){
+  const {n,z,h,river,occ,dike,shade,br,open}=S, d=img.data, rel=view==="relief";
+  for(let i=0;i<n;i++){const p=i*4; let r=0,g=0,b=0,a=0;
+    if(rel){const c=rampColor(z[i]); r=c[0]*shade[i]; g=c[1]*shade[i]; b=c[2]*shade[i]; a=255;}
+    if(river[i]||occ[i]>=50){r=44;g=120;b=176;a=rel?255:200;}
+    else if(h[i]>0.05){const w=Math.min(0.92,0.42+h[i]*0.22);   // deeper water, more opaque
+      r=rel?r*(1-w)+240*w:240; g=rel?g*(1-w)+165*w:165; b=rel?b*(1-w)+58*w:58; a=rel?255:Math.round(255*w);}
+    else if(dike[i]){r=rel?40:30;g=rel?36:28;b=rel?32:24;a=rel?255:150;}
+    if(i===br){r=255;g=111;b=97;a=open?255:120;}
+    d[p]=r;d[p+1]=g;d[p+2]=b;d[p+3]=a;}
+  ctx.putImageData(img,0,0);
+}
+function stats(){$("tDays").textContent=num(S.t/86400,1); $("area").textContent=num(floodedKm2());}
+
+// ---------------- map and interaction ----------------
+let map, running=true, tool="pan", painting=false;
+function corners(){const b=S.g.box; return [[b[0],b[3]],[b[2],b[3]],[b[2],b[1]],[b[0],b[1]]];}
+function build(){
+  const b=S.g.box, cv=$("sim"); cv.width=S.nx; cv.height=S.ny; ctx=cv.getContext("2d"); img=ctx.createImageData(S.nx,S.ny); draw();
+  map=new maplibregl.Map({container:"map",attributionControl:{compact:true},
+    style:{version:8,sources:{esri:{type:"raster",tileSize:256,maxzoom:19,tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],attribution:"Imagery: Esri, Maxar, Earthstar Geographics"}},layers:[{id:"esri",type:"raster",source:"esri",paint:{"raster-saturation":-0.4,"raster-brightness-max":0.8}}]},
+    bounds:[[b[0],b[1]],[b[2],b[3]]],fitBoundsOptions:{padding:{left:innerWidth>900?440:10,right:20,top:20,bottom:innerWidth>900?20:innerHeight*.52}}});
+  map.addControl(new maplibregl.NavigationControl({showCompass:false}),"top-right");
+  map.once("style.load",()=>{
+    map.addSource("sim",{type:"canvas",canvas:cv,coordinates:corners(),animate:true});
+    map.addLayer({id:"sim",type:"raster",source:"sim",paint:{"raster-resampling":"nearest","raster-fade-duration":0}});
+    const bx=b[0]+(S.br%S.nx+0.5)*S.g.step, by=b[3]-(Math.floor(S.br/S.nx)+0.5)*S.g.step;   // ring around the breach cell
+    map.addSource("breach",{type:"geojson",data:{type:"Point",coordinates:[bx,by]}});
+    map.addLayer({id:"breach",type:"circle",source:"breach",paint:{"circle-radius":11,"circle-color":"rgba(0,0,0,0)","circle-stroke-width":2.5,"circle-stroke-color":"#ff6f61"}});
+    map.addSource("obs",{type:"image",url:"../data/maps/2022-12.png",coordinates:corners()});
+    map.addLayer({id:"obs",type:"raster",source:"obs",layout:{visibility:"none"},paint:{"raster-opacity":.9,"raster-saturation":-1,"raster-brightness-min":.35,"raster-fade-duration":0}},"sim");   // grey and under the simulation, so the two read apart
+  });
+  const el=map.getCanvasContainer();
+  el.addEventListener("pointerdown",e=>{if(tool==="pan")return; painting=true; brush(e);});
+  el.addEventListener("pointermove",e=>{if(painting) brush(e);});
+  addEventListener("pointerup",()=>painting=false);
+  requestAnimationFrame(loop);
+}
+function brush(e){
+  const r=map.getCanvas().getBoundingClientRect(), ll=map.unproject([e.clientX-r.left,e.clientY-r.top]), g=S.g;
+  const cx=(ll.lng-g.box[0])/g.step, cy=(g.box[3]-ll.lat)/g.step, R=4;
+  for(let y=Math.floor(cy-R);y<=cy+R;y++) for(let x=Math.floor(cx-R);x<=cx+R;x++){
+    if(x<1||y<1||x>=S.nx-1||y>=S.ny-1) continue;
+    const i=y*S.nx+x, f=Math.max(0,1-Math.hypot(x+0.5-cx,y+0.5-cy)/R); if(!f) continue;
+    if(tool==="water"){S.h[i]+=0.6*f; if(S.h[i]>S.hland) S.hland=S.h[i];}   // keeps the next time step stable
+    else {S.z[i]+=(tool==="raise"?0.8:-0.8)*f; if(S.river[i]) S.zGround[i]=S.z[i];}}
+  for(let y=Math.floor(cy-R-1);y<=cy+R+1;y++) for(let x=Math.floor(cx-R-1);x<=cx+R+1;x++) if(x>=0&&y>=0&&x<S.nx&&y<S.ny) shadeCell(y*S.nx+x);
+  if(!running) draw();
+}
+let lastStats=0;
+function loop(now){
+  if(running){const t0=performance.now(); do step(); while(performance.now()-t0<14); draw();}
+  if(now-lastStats>250){stats(); lastStats=now;}
+  requestAnimationFrame(loop);
+}
+function render(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(e=>e.textContent=t(e.dataset.i18n));
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang));
+  document.querySelectorAll("[data-th]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.th===theme));
+  $("run").textContent=running?t("pause"):t("run");
+  $("breach").textContent=S&&!S.open?t("closed"):t("open");
+  $("stageOut").textContent="+"+num(+$("stage").value,1)+" m";
+  $("legend").innerHTML=[["--perm","lg_river"],["--flood","lg_sim"],["#2a241f","lg_dike"],["--event","lg_breach"]].map(([c,k])=>`<span><i style="background:${c.startsWith("--")?`var(${c})`:c}"></i>${t(k)}</span>`).join("");
+  $("credits").innerHTML=t("credits");
+  if(S) stats();
+}
+document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{lang=b.dataset.lang;store.set("moj-lang",lang);render();});
+document.querySelectorAll("[data-th]").forEach(b=>b.onclick=()=>{theme=b.dataset.th;store.set("moj-theme",theme);document.documentElement.setAttribute("data-theme",theme);render();});
+$("run").onclick=()=>{running=!running; render();};
+$("breach").onclick=()=>{S.open=!S.open; $("breach").setAttribute("aria-pressed",S.open); applyBreach(); shadeCell(S.br); draw(); render();};
+$("reset").onclick=()=>{resetModel(); draw(); stats();};
+$("stage").oninput=e=>{S.stage=+e.target.value; render();};
+document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{tool=b.dataset.tool;
+  document.querySelectorAll("[data-tool]").forEach(o=>o.setAttribute("aria-pressed",o===b));
+  if(map){tool==="pan"?map.dragPan.enable():map.dragPan.disable(); $("map").classList.toggle("tool",tool!=="pan");}});
+document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{view=b.dataset.view;
+  document.querySelectorAll("[data-view]").forEach(o=>o.setAttribute("aria-pressed",o===b)); draw();});
+$("obs").onchange=e=>{if(map&&map.getLayer("obs")) map.setLayoutProperty("obs","visibility",e.target.checked?"visible":"none");};
+if(matchMedia("(prefers-reduced-motion: reduce)").matches) running=false;
+render();
+fetch("grid.json").then(r=>r.json()).then(g=>{setup(g); render(); build();});
+</script>
+</body>
+</html>

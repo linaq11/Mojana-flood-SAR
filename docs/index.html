@@ -56,6 +56,9 @@ h1{font:800 28px/1.04 var(--display);margin:0;text-wrap:balance}
 .month{font:800 22px var(--display);min-width:150px;font-variant-numeric:tabular-nums}
 input[type=range]{flex:1;accent-color:var(--flood)}
 svg text{fill:var(--muted);font:11px var(--body)}
+.sandlink{display:flex;flex-direction:column;gap:2px;text-decoration:none;border:1px solid var(--on-line);border-radius:14px;padding:12px;background:var(--on)}
+.sandlink b{font:700 16px var(--display);color:var(--gold1)} .sandlink span{color:var(--muted);font-size:12.5px}
+.sandlink:hover b{text-decoration:underline}
 .credits{color:var(--faint);font-size:11px;margin:0} .credits a{color:var(--muted)}
 .maplibregl-ctrl-attrib{background:var(--attrib)!important;color:var(--muted)} .maplibregl-ctrl-attrib a{color:var(--muted)!important}
 @media (max-width:900px){
@@ -80,6 +83,7 @@ svg text{fill:var(--muted);font:11px var(--body)}
   <div class="legend" id="legend"></div>
   <div class="big" id="big"></div>
   <div class="card"><h2 data-i18n="checkT"></h2><p class="lede" style="font-size:12.5px" id="check"></p></div>
+  <a class="sandlink" href="sandbox/"><b data-i18n="sandT"></b><span data-i18n="sand"></span></a>
   <p class="credits" id="credits"></p>
 </aside>
 <section class="timeline" aria-labelledby="monthLabel">
@@ -100,6 +104,7 @@ const T={
   checkT:"Checked against Sentinel-2",check:"On {d} clear days, radar water matched optical water with an F1 of {f} (all dates pooled) and {a}% overall agreement. On {b} dates the F1 was below 0.7, probably where vegetation stands in the water.",
   play:"Play",pause:"Pause",km:"km² flooded",nodata:"no radar scenes",
   ev_break:"Dike breaks",ev_closed:"Breach closed",ev_rebreak:"Breaks again",
+  sandT:"Try the flood sandbox",sand:"Open the breach on the real terrain and watch where the water goes.",
   credits:'Radar: Copernicus Sentinel-1 (ESA). Permanent water: JRC Global Surface Water. Slope: SRTM. Water below −18 dB in VV, new if not water in at least half of the months from January 2020 to July 2021. Imagery: Esri World Imagery. <a href="https://github.com/linaq11/Mojana-flood-SAR">Code and method</a>, Lina María Quintero Fonseca.'},
  es:{dark:"Oscuro",light:"Claro",title:"Monitor de inundación de La Mojana",sub:"Radar Sentinel-1, río Cauca, Colombia, 2020 a 2025",
   lede:"Extensión mensual de la inundación antes y después de la ruptura del dique de Cara de Gato el 27 de agosto de 2021, mapeada con radar, que ve a través de las nubes.",
@@ -108,6 +113,7 @@ const T={
   checkT:"Comparado con Sentinel-2",check:"En {d} días despejados, el agua del radar coincidió con la del óptico con un F1 de {f} (todas las fechas juntas) y {a} % de acuerdo global. En {b} fechas el F1 quedó por debajo de 0,7, probablemente donde hay vegetación dentro del agua.",
   play:"Reproducir",pause:"Pausa",km:"km² inundados",nodata:"sin escenas de radar",
   ev_break:"Se rompe el dique",ev_closed:"Se cierra el boquete",ev_rebreak:"Se rompe de nuevo",
+  sandT:"Prueba la caja de arena",sand:"Abre la ruptura sobre el terreno real y mira hacia dónde va el agua.",
   credits:'Radar: Copernicus Sentinel-1 (ESA). Agua permanente: JRC Global Surface Water. Pendiente: SRTM. Agua por debajo de −18 dB en VV; nueva si no era agua en al menos la mitad de los meses de enero de 2020 a julio de 2021. Imagen: Esri World Imagery. <a href="https://github.com/linaq11/Mojana-flood-SAR">Código y método</a>, Lina María Quintero Fonseca.'}
 };
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
