@@ -10,5 +10,5 @@ authors:
 version: 0.1.0
 date-released: 2026-11-20
 license: MIT
-repository-code: "https://github.com/linaq11/mojana-flood-sar"
+repository-code: "https://github.com/linaq11/Mojana-flood-SAR"
 keywords: [flood mapping, Sentinel-1, SAR, La Mojana, Cauca River, Earth Engine, Colombia]

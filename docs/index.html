@@ -100,7 +100,7 @@ const T={
   checkT:"Checked against Sentinel-2",check:"On {d} clear days, radar water matched optical water with an F1 of {f} (all dates pooled) and {a}% overall agreement. On {b} dates the F1 was below 0.7, probably where vegetation stands in the water.",
   play:"Play",pause:"Pause",km:"km² flooded",nodata:"no radar scenes",
   ev_break:"Dike breaks",ev_closed:"Breach closed",ev_rebreak:"Breaks again",
-  credits:'Radar: Copernicus Sentinel-1 (ESA). Permanent water: JRC Global Surface Water. Slope: SRTM. Water below −18 dB in VV, new if not water in at least half of the months from January 2020 to July 2021. Imagery: Esri World Imagery. <a href="https://github.com/linaq11/mojana-flood-sar">Code and method</a>, Lina María Quintero Fonseca.'},
+  credits:'Radar: Copernicus Sentinel-1 (ESA). Permanent water: JRC Global Surface Water. Slope: SRTM. Water below −18 dB in VV, new if not water in at least half of the months from January 2020 to July 2021. Imagery: Esri World Imagery. <a href="https://github.com/linaq11/Mojana-flood-SAR">Code and method</a>, Lina María Quintero Fonseca.'},
  es:{dark:"Oscuro",light:"Claro",title:"Monitor de inundación de La Mojana",sub:"Radar Sentinel-1, río Cauca, Colombia, 2020 a 2025",
   lede:"Extensión mensual de la inundación antes y después de la ruptura del dique de Cara de Gato el 27 de agosto de 2021, mapeada con radar, que ve a través de las nubes.",
   perm:"Agua permanente",before:"Agua que ya había antes de la ruptura",flood:"Inundación nueva",
@@ -108,7 +108,7 @@ const T={
   checkT:"Comparado con Sentinel-2",check:"En {d} días despejados, el agua del radar coincidió con la del óptico con un F1 de {f} (todas las fechas juntas) y {a} % de acuerdo global. En {b} fechas el F1 quedó por debajo de 0,7, probablemente donde hay vegetación dentro del agua.",
   play:"Reproducir",pause:"Pausa",km:"km² inundados",nodata:"sin escenas de radar",
   ev_break:"Se rompe el dique",ev_closed:"Se cierra el boquete",ev_rebreak:"Se rompe de nuevo",
-  credits:'Radar: Copernicus Sentinel-1 (ESA). Agua permanente: JRC Global Surface Water. Pendiente: SRTM. Agua por debajo de −18 dB en VV; nueva si no era agua en al menos la mitad de los meses de enero de 2020 a julio de 2021. Imagen: Esri World Imagery. <a href="https://github.com/linaq11/mojana-flood-sar">Código y método</a>, Lina María Quintero Fonseca.'}
+  credits:'Radar: Copernicus Sentinel-1 (ESA). Agua permanente: JRC Global Surface Water. Pendiente: SRTM. Agua por debajo de −18 dB en VV; nueva si no era agua en al menos la mitad de los meses de enero de 2020 a julio de 2021. Imagen: Esri World Imagery. <a href="https://github.com/linaq11/Mojana-flood-SAR">Código y método</a>, Lina María Quintero Fonseca.'}
 };
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let lang=store.get("moj-lang")||"en", theme=store.get("moj-theme")||"dark", D, M, idx=0, timer=null, map;

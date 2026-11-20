@@ -2,7 +2,7 @@
 
 Monthly flood extent from Sentinel-1 radar over La Mojana, in northern Colombia, from January 2020 to December 2025: before the Cara de Gato dike on the Cauca River broke on 27 August 2021, through nearly three years of flooding, the closure of the breach in February 2024 and the second break on 6 May 2024. Radar sees through the clouds that cover this region for much of the year.
 
-**Live dashboard: https://linaq11.github.io/mojana-flood-sar/**
+**Live dashboard: https://linaq11.github.io/Mojana-flood-SAR/**
 
 ![Dashboard: flood extent in December 2022, the monthly series and the dike events](docs/screenshot_dark_en.jpg)
 
