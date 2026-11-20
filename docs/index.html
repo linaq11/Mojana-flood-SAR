@@ -11,19 +11,19 @@
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
 :root{
-  --bg:#0a100e; --glass:rgba(12,21,18,.72); --glass-strong:rgba(10,18,16,.88); --line:rgba(206,232,220,.12);
-  --ink:#e8f1ec; --muted:#9bb2a8; --faint:#6d8379; --gold1:#f4dc9c; --gold2:#c99440;
-  --flood:#e0a23a; --before:#7fb6d6; --perm:#2b6f9e; --event:#e0584c;
-  --chip:rgba(255,255,255,.04); --grid:rgba(206,232,220,.10); --shadow:0 18px 50px rgba(0,0,0,.38);
-  --on:rgba(224,162,58,.14); --on-line:rgba(224,162,58,.55); --attrib:rgba(8,14,12,.7);
+  --bg:#06141c; --glass:rgba(8,26,36,.74); --glass-strong:rgba(7,22,31,.9); --line:rgba(190,228,240,.13);
+  --ink:#e6f4f8; --muted:#97b9c4; --faint:#678995; --gold1:#7fd8ea; --gold2:#4fbcd4;
+  --flood:#f0a53a; --before:#8ec9e3; --perm:#2c78b0; --event:#ff6f61;
+  --chip:rgba(255,255,255,.04); --grid:rgba(190,228,240,.10); --shadow:0 18px 50px rgba(0,0,0,.42);
+  --on:rgba(79,188,212,.15); --on-line:rgba(79,188,212,.55); --attrib:rgba(5,16,22,.72);
   --display:"Bricolage Grotesque","Manrope",system-ui,sans-serif; --body:"Manrope",system-ui,sans-serif;
 }
 :root[data-theme="light"]{
-  --bg:#d5eadd; --glass:rgba(224,242,231,.78); --glass-strong:rgba(218,239,226,.9); --line:rgba(22,72,46,.16);
-  --ink:#0f2619; --muted:#3a5a48; --faint:#5d7c6b; --gold1:#b98320; --gold2:#7a500f;
-  --flood:#b8780e; --before:#3d86ad; --perm:#1d4f73; --event:#b8392f;
-  --chip:rgba(255,255,255,.45); --grid:rgba(15,38,25,.13); --shadow:0 18px 50px rgba(20,60,40,.2);
-  --on:rgba(184,120,14,.14); --on-line:rgba(184,120,14,.55); --attrib:rgba(224,242,231,.82);
+  --bg:#d9edf1; --glass:rgba(226,243,247,.8); --glass-strong:rgba(219,239,244,.92); --line:rgba(14,60,78,.16);
+  --ink:#0b2630; --muted:#355a67; --faint:#58808c; --gold1:#0e7590; --gold2:#0b5f75;
+  --flood:#c2780c; --before:#3d8db4; --perm:#1b5582; --event:#c23b30;
+  --chip:rgba(255,255,255,.5); --grid:rgba(11,38,48,.12); --shadow:0 18px 50px rgba(14,60,78,.18);
+  --on:rgba(14,117,144,.13); --on-line:rgba(14,117,144,.5); --attrib:rgba(226,243,247,.85);
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
@@ -47,7 +47,7 @@ h1{font:800 28px/1.04 var(--display);margin:0;text-wrap:balance}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle}
 .big{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .big div{border-top:1px solid var(--line);padding-top:8px}
-.big b{display:block;font:800 36px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--gold1)}
+.big b{display:block;font:800 36px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--flood)}
 .big span{color:var(--muted);font-size:12.5px}
 .card{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--glass-strong)}
 .card h2{font:700 16px var(--display);margin:0 0 4px}
