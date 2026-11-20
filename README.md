@@ -41,7 +41,7 @@ The preregistered expectation, an F1 of 0.7 or more for open water, is met. Two 
 
 **https://linaq11.github.io/Mojana-flood-SAR/sandbox/**
 
-A digital version of an augmented-reality sandbox, on the real terrain of La Mojana. The Cauca runs behind a dike; you can open or close the breach at Cara de Gato, raise the river, build or dig the ground by dragging, and pour water. The 3D view is a close-up of about 38 by 38 km around the breach, coloured by height with contour lines like a sand table; the map view covers the whole region and can lay the radar flood of December 2022 underneath for comparison.
+A digital version of an augmented-reality sandbox, on the real terrain of La Mojana. The Cauca runs behind a dike; you can open or close the breach at Cara de Gato, raise the river, build or dig the ground by dragging, and pour water. The 3D view is a close-up of about 38 by 38 km around the breach, coloured by height with contour lines like a physical sandbox; the map view covers the whole region and can lay the radar flood of December 2022 underneath for comparison.
 
 ![Flood sandbox in 3D after two simulated days with the breach open](docs/sandbox/screenshot_dark_en.jpg)
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>La Mojana Flood Sandbox</title>
-<meta name="description" content="A digital sand table of La Mojana: open the Cara de Gato breach, raise the Cauca River and reshape the ground to see where the water goes. A demonstration, not a validated model.">
+<meta name="description" content="A digital sandbox of La Mojana: open the Cara de Gato breach, raise the Cauca River and reshape the ground to see where the water goes. A demonstration, not a validated model.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
@@ -126,7 +126,7 @@ input[type=range]{flex:1;accent-color:var(--flood)}
 <script>
 const T={
  en:{dark:"Dark",light:"Light",title:"La Mojana flood sandbox",sub:"Cauca River and the Cara de Gato breach, Colombia",
-  lede:"A digital sand table of the real terrain. The Cauca runs behind a dike; open the breach, raise the river and reshape the ground to see where the water goes.",
+  lede:"A digital sandbox built on the real terrain. The Cauca runs behind a dike; open the breach, raise the river and reshape the ground to see where the water goes.",
   v3d:"3D sandbox, breach area",vmap:"Map, whole region",
   days:"days simulated",km:"km² under more than 10 cm of new water",
   run:"Run",pause:"Pause",open:"Breach open",closed:"Breach closed",reset:"Start again",
@@ -141,7 +141,7 @@ const T={
   back:"Back to the flood monitor",
   credits:'Terrain: FABDEM (Hawker et al., 2022), from Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018, provided under Copernicus by the European Union and ESA; non-commercial use. River channels: MERIT Hydro (Yamazaki et al., 2019). Breach location: © OpenStreetMap contributors. Permanent water: JRC Global Surface Water. Radar: Copernicus Sentinel-1. Imagery: Esri World Imagery. 3D: three.js. <a href="https://github.com/linaq11/Mojana-flood-SAR">Code and method</a>, Lina María Quintero Fonseca.'},
  es:{dark:"Oscuro",light:"Claro",title:"Caja de arena de la inundación de La Mojana",sub:"Río Cauca y la ruptura de Cara de Gato, Colombia",
-  lede:"Una mesa de arena digital con el terreno real. El Cauca corre detrás de un dique: abre la ruptura, sube el río y moldea el terreno para ver hacia dónde va el agua.",
+  lede:"Una caja de arena digital hecha con el terreno real. El Cauca corre detrás de un dique: abre la ruptura, sube el río y moldea el terreno para ver hacia dónde va el agua.",
   v3d:"Caja 3D, zona de la ruptura",vmap:"Mapa, toda la región",
   days:"días simulados",km:"km² con más de 10 cm de agua nueva",
   run:"Correr",pause:"Pausa",open:"Ruptura abierta",closed:"Ruptura cerrada",reset:"Empezar de nuevo",
@@ -280,7 +280,7 @@ async function showScene(name){
   setTool(tool); render();
 }
 
-// ---- 3D sand table (three.js) ----
+// ---- 3D sandbox (three.js) ----
 async function build3d(){
   const THREE=await import("three"), {OrbitControls}=await import("three/addons/controls/OrbitControls.js");
   // satellite image of the same area behind the table
