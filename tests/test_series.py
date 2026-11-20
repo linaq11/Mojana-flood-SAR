@@ -26,8 +26,8 @@ def test_events_fall_inside_the_series_and_have_maps_nearby():
         assert e["m"] in months and e["m"] in maps
 
 
-def _grid():
-    return json.loads((ROOT / "docs" / "sandbox" / "grid.json").read_text())
+def _grid(name="grid.json"):
+    return json.loads((ROOT / "docs" / "sandbox" / name).read_text())
 
 
 def _breach_to_river_cells(g):
@@ -39,9 +39,11 @@ def _breach_to_river_cells(g):
     return float(np.hypot(rx + 0.5 - x, ry + 0.5 - y).min())
 
 
-def test_sandbox_grid_is_complete_and_the_breach_sits_on_the_cauca():
-    g = _grid()
-    n = g["nx"] * g["ny"]
-    assert len(g["z"]) == len(g["occ"]) == len(g["upa"]) == n
-    assert min(g["z"]) > -100                  # no -9999 holes in the terrain
-    assert _breach_to_river_cells(g) <= 8      # within about 2 km of the river channel
+def test_sandbox_grids_are_complete_and_the_breach_sits_on_the_cauca():
+    for name in ("grid.json", "grid_breach.json"):
+        g = _grid(name)
+        n = g["nx"] * g["ny"]
+        assert len(g["z"]) == len(g["occ"]) == len(g["upa"]) == n, name
+        assert min(g["z"]) > -100, name        # no -9999 holes in the terrain
+        cell_m = g["step"] * 111_000
+        assert _breach_to_river_cells(g) * cell_m <= 2200, name   # within about 2 km of the river channel

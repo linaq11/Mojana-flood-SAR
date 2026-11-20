@@ -1,8 +1,8 @@
 """Terrain and water grids for the digital flood sandbox (docs/sandbox).
 
-FABDEM (Copernicus GLO-30 with forests and buildings removed) averaged to a 0.0025° grid (about 275 m)
-over the La Mojana box, and JRC Global Surface Water occurrence on the same grid.
-Writes docs/sandbox/grid.json. USE: python scripts/sandbox_grid.py --project my-ee-project
+FABDEM (Copernicus GLO-30 with forests and buildings removed) averaged to a regular grid, and JRC Global Surface Water occurrence on the same grid.
+Writes docs/sandbox/grid.json (--zone region) or docs/sandbox/grid_breach.json (--zone breach).
+USE: python scripts/sandbox_grid.py --project my-ee-project [--zone breach]
 """
 import argparse
 import json
@@ -12,15 +12,18 @@ import ee
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-BOX = [-75.3, 7.9, -74.3, 9.0]
-STEP = 0.0025
+# region: the whole monitor box at about 275 m (map view); breach: a close-up around Cara de Gato at about 110 m (3D view)
+ZONES = {"region": ([-75.3, 7.9, -74.3, 9.0], 0.0025, "grid.json"),
+         "breach": ([-75.03, 8.08, -74.68, 8.43], 0.001, "grid_breach.json")}
 BREACH = [-74.7903, 8.1553]          # OpenStreetMap feature "Caregato" (dam), San Jacinto del Cauca
 
 
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--project", required=True)
+    p.add_argument("--zone", choices=ZONES, default="region")
     a = p.parse_args()
+    BOX, STEP, name = ZONES[a.zone]
     ee.Initialize(project=a.project)
     box = ee.Geometry.Rectangle(BOX, proj="EPSG:4326", geodesic=False)
     tr = [STEP, 0, BOX[0], 0, -STEP, BOX[3]]
@@ -47,7 +50,7 @@ def main() -> None:
     upa = np.vstack([r[2] for r in rows])[:ny, :nx]
     out = ROOT / "docs" / "sandbox"
     out.mkdir(parents=True, exist_ok=True)
-    (out / "grid.json").write_text(json.dumps({
+    (out / name).write_text(json.dumps({
         "box": BOX, "step": STEP, "nx": int(z.shape[1]), "ny": int(z.shape[0]), "breach": BREACH,
         "z": np.round(z, 2).ravel().tolist(), "occ": np.round(occ).astype(int).ravel().tolist(),
         "upa": np.round(np.clip(upa, 0, None)).astype(int).ravel().tolist()},

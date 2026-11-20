@@ -9,30 +9,35 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 <style>
 :root{
-  --bg:#06141c; --glass:rgba(8,26,36,.74); --glass-strong:rgba(7,22,31,.9); --line:rgba(190,228,240,.13);
-  --ink:#e6f4f8; --muted:#97b9c4; --faint:#678995; --gold1:#7fd8ea; --gold2:#4fbcd4;
-  --flood:#f0a53a; --perm:#2c78b0; --event:#ff6f61;
-  --chip:rgba(255,255,255,.04); --shadow:0 18px 50px rgba(0,0,0,.42);
-  --on:rgba(79,188,212,.15); --on-line:rgba(79,188,212,.55); --attrib:rgba(5,16,22,.72);
+  --bg:#0e3557; --bg2:#1f6c9e; --glass:rgba(20,72,112,.42); --glass-strong:rgba(14,56,92,.56); --line:rgba(210,236,255,.24);
+  --ink:#f2f8fe; --muted:#c6ddf0; --faint:#94b7d4; --gold1:#a8e0ff; --gold2:#7fcaf6;
+  --flood:#f0a53a; --before:#8ec9e3; --perm:#2c78b0; --event:#ff7a6c;
+  --chip:rgba(255,255,255,.08); --grid:rgba(210,236,255,.14); --shadow:0 18px 50px rgba(3,20,40,.35);
+  --on:rgba(140,210,255,.2); --on-line:rgba(140,210,255,.65); --attrib:rgba(14,53,87,.7);
   --display:"Bricolage Grotesque","Manrope",system-ui,sans-serif; --body:"Manrope",system-ui,sans-serif;
 }
 :root[data-theme="light"]{
-  --bg:#d9edf1; --glass:rgba(226,243,247,.8); --glass-strong:rgba(219,239,244,.92); --line:rgba(14,60,78,.16);
-  --ink:#0b2630; --muted:#355a67; --faint:#58808c; --gold1:#0e7590; --gold2:#0b5f75;
-  --flood:#c2780c; --perm:#1b5582; --event:#c23b30;
-  --chip:rgba(255,255,255,.5); --shadow:0 18px 50px rgba(14,60,78,.18);
-  --on:rgba(14,117,144,.13); --on-line:rgba(14,117,144,.5); --attrib:rgba(226,243,247,.85);
+  --bg:#c9e2f5; --bg2:#f2f9ff; --glass:rgba(244,250,255,.5); --glass-strong:rgba(236,246,255,.64); --line:rgba(20,70,120,.18);
+  --ink:#0b2742; --muted:#2c5274; --faint:#4f7092; --gold1:#1667b8; --gold2:#11558f;
+  --flood:#c2780c; --before:#3d8db4; --perm:#1b5582; --event:#c23b30;
+  --chip:rgba(255,255,255,.5); --grid:rgba(11,39,66,.12); --shadow:0 18px 50px rgba(20,70,120,.16);
+  --on:rgba(22,103,184,.13); --on-line:rgba(22,103,184,.45); --attrib:rgba(244,250,255,.8);
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
-#map{position:fixed;inset:0}
-#map.tool{cursor:crosshair}
+html,body{margin:0;height:100%;background:radial-gradient(ellipse 90% 80% at 68% 42%,var(--bg2),var(--bg) 75%) fixed var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
+#map,#three{position:fixed;inset:0}
+#three{display:block;width:100%;height:100%;touch-action:none}
+#map.tool,#three.tool{cursor:crosshair}
+[hidden]{display:none!important}
+.ramp{display:inline-block;width:46px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle;background:linear-gradient(90deg,#3f8f3a,#e3d65a,#e8a33d,#7a4b33,#f2efe9)}
+.wramp{display:inline-block;width:46px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle;background:linear-gradient(90deg,#8fe3f0,#2f8fd0,#123f86)}
 #sim{display:none}
 .ui{position:fixed;inset:0;pointer-events:none;padding:16px;display:flex;gap:16px}
 .panel{pointer-events:auto;width:min(410px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--glass);
-  backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--line);
+  backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);border:1px solid var(--line);
   border-radius:18px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:15px}
 .top{display:flex;gap:8px;flex-wrap:wrap}
 .toggle{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--chip)}
@@ -76,7 +81,8 @@ input[type=range]{flex:1;accent-color:var(--flood)}
 </head>
 <body>
 <canvas id="sim"></canvas>
-<div id="map" role="img" aria-label="Map of La Mojana with the simulated flood water"></div>
+<canvas id="three" role="img" aria-label="3D view of the terrain around the Cara de Gato breach with the simulated water"></canvas>
+<div id="map" role="img" aria-label="Map of La Mojana with the simulated flood water" hidden></div>
 <div class="ui">
 <aside class="panel">
   <div class="top">
@@ -85,6 +91,7 @@ input[type=range]{flex:1;accent-color:var(--flood)}
   </div>
   <div><h1 data-i18n="title"></h1><div class="sub" data-i18n="sub"></div></div>
   <p class="lede" data-i18n="lede"></p>
+  <div class="toggle" role="group" aria-label="View"><button data-scene="3d" aria-pressed="true" data-i18n="v3d"></button><button data-scene="map" aria-pressed="false" data-i18n="vmap"></button></div>
   <div class="big"><div><b id="tDays">0</b><span data-i18n="days"></span></div><div><b id="area">0</b><span data-i18n="km"></span></div></div>
   <div class="row">
     <button class="btn" id="run"></button>
@@ -103,7 +110,7 @@ input[type=range]{flex:1;accent-color:var(--flood)}
     </div>
     <p class="hint" data-i18n="toolHint"></p>
   </div>
-  <div class="row">
+  <div class="row" id="mapOnly" hidden>
     <div class="toggle" role="group" aria-label="Ground"><button data-view="relief" aria-pressed="true" data-i18n="relief"></button><button data-view="sat" aria-pressed="false" data-i18n="sat"></button></div>
     <label class="check"><input type="checkbox" id="obs"><span data-i18n="obs"></span></label>
   </div>
@@ -117,30 +124,34 @@ input[type=range]{flex:1;accent-color:var(--flood)}
 const T={
  en:{dark:"Dark",light:"Light",title:"La Mojana flood sandbox",sub:"Cauca River and the Cara de Gato breach, Colombia",
   lede:"A digital sand table of the real terrain. The Cauca runs behind a dike; open the breach, raise the river and reshape the ground to see where the water goes.",
+  v3d:"3D sandbox, breach area",vmap:"Map, whole region",
   days:"days simulated",km:"km² under more than 10 cm of new water",
   run:"Run",pause:"Pause",open:"Breach open",closed:"Breach closed",reset:"Start again",
   stage:"River level above normal",stageHint:"The dike stands 4 m above the normal river level. Above that the river overtops it everywhere.",
-  toolT:"Hand tool",pan:"Move map",raise:"Raise ground",dig:"Dig",water:"Pour water",
-  toolHint:"Drag on the map to build a dike, dig a channel or pour water.",
+  toolT:"Hand tool",pan:"Move view",raise:"Raise ground",dig:"Dig",water:"Pour water",
+  toolHint:"Drag to build a dike, dig a channel or pour water. Choose Move view to turn and zoom.",
   relief:"Relief",sat:"Satellite",obs:"Radar flood, December 2022, in grey",
+  lg_ground:"Ground, low to high, with contour lines",lg_water:"Water, darker is deeper",
   lg_river:"River and permanent water",lg_sim:"Simulated flood water",lg_dike:"Dike",lg_breach:"Breach",
   whatT:"A demonstration, not a model of what happened",
-  what:"Water moves with the local inertial equations (Bates et al., 2010) on a 275 m grid of bare-earth terrain. The dike is drawn along every river bank, the breach is one grid cell at the mapped location of Cara de Gato, and the river is held at a fixed level. There is no rain, no infiltration, no real river hydrograph and no calibration, so the times and areas are not predictions. The radar layer shows what Sentinel-1 actually saw at the peak, for comparison by eye.",
+  what:"Water moves with the local inertial equations (Bates et al., 2010) on bare-earth terrain: a 110 m grid of about 38 by 38 km around the breach in the 3D view, and a 275 m grid of the whole region on the map. Heights in 3D are exaggerated, more in the lowlands than in the hills. The dike is drawn along every river bank, the breach is about 300 m wide at the mapped location of Cara de Gato, and the river is held at a fixed level. There is no rain, no infiltration, no real river hydrograph and no calibration, so the times and areas are not predictions. On the map, the radar layer shows what Sentinel-1 actually saw at the peak, for comparison by eye.",
   back:"Back to the flood monitor",
-  credits:'Terrain: FABDEM (Hawker et al., 2022), from Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018, provided under Copernicus by the European Union and ESA; non-commercial use. River channels: MERIT Hydro (Yamazaki et al., 2019). Breach location: © OpenStreetMap contributors. Permanent water: JRC Global Surface Water. Radar: Copernicus Sentinel-1. Imagery: Esri World Imagery. <a href="https://github.com/linaq11/Mojana-flood-SAR">Code and method</a>, Lina María Quintero Fonseca.'},
+  credits:'Terrain: FABDEM (Hawker et al., 2022), from Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018, provided under Copernicus by the European Union and ESA; non-commercial use. River channels: MERIT Hydro (Yamazaki et al., 2019). Breach location: © OpenStreetMap contributors. Permanent water: JRC Global Surface Water. Radar: Copernicus Sentinel-1. Imagery: Esri World Imagery. 3D: three.js. <a href="https://github.com/linaq11/Mojana-flood-SAR">Code and method</a>, Lina María Quintero Fonseca.'},
  es:{dark:"Oscuro",light:"Claro",title:"Caja de arena de la inundación de La Mojana",sub:"Río Cauca y la ruptura de Cara de Gato, Colombia",
   lede:"Una mesa de arena digital con el terreno real. El Cauca corre detrás de un dique: abre la ruptura, sube el río y moldea el terreno para ver hacia dónde va el agua.",
+  v3d:"Caja 3D, zona de la ruptura",vmap:"Mapa, toda la región",
   days:"días simulados",km:"km² con más de 10 cm de agua nueva",
   run:"Correr",pause:"Pausa",open:"Ruptura abierta",closed:"Ruptura cerrada",reset:"Empezar de nuevo",
   stage:"Nivel del río sobre lo normal",stageHint:"El dique está 4 m por encima del nivel normal del río. Por encima de eso, el río lo desborda en todas partes.",
-  toolT:"Herramienta",pan:"Mover mapa",raise:"Subir terreno",dig:"Excavar",water:"Echar agua",
-  toolHint:"Arrastra sobre el mapa para levantar un dique, abrir un canal o echar agua.",
+  toolT:"Herramienta",pan:"Mover vista",raise:"Subir terreno",dig:"Excavar",water:"Echar agua",
+  toolHint:"Arrastra para levantar un dique, abrir un canal o echar agua. Elige Mover vista para girar y acercar.",
   relief:"Relieve",sat:"Satélite",obs:"Inundación vista por radar, diciembre de 2022, en gris",
+  lg_ground:"Terreno, de bajo a alto, con curvas de nivel",lg_water:"Agua, más oscura donde es más profunda",
   lg_river:"Río y agua permanente",lg_sim:"Agua de la inundación simulada",lg_dike:"Dique",lg_breach:"Ruptura",
   whatT:"Una demostración, no un modelo de lo que pasó",
-  what:"El agua se mueve con las ecuaciones inerciales locales (Bates et al., 2010) sobre una grilla de 275 m de terreno sin vegetación ni edificios. El dique se dibuja a lo largo de todas las orillas, la ruptura es una celda en la ubicación cartografiada de Cara de Gato y el río se mantiene a un nivel fijo. No hay lluvia, infiltración, hidrograma real del río ni calibración, así que los tiempos y las áreas no son predicciones. La capa de radar muestra lo que Sentinel-1 vio de verdad en el máximo, para comparar a ojo.",
+  what:"El agua se mueve con las ecuaciones inerciales locales (Bates et al., 2010) sobre terreno sin vegetación ni edificios: una grilla de 110 m de unos 38 por 38 km alrededor de la ruptura en la vista 3D, y una de 275 m de toda la región en el mapa. Las alturas en 3D están exageradas, más en las tierras bajas que en los cerros. El dique se dibuja a lo largo de todas las orillas, la ruptura mide unos 300 m en la ubicación cartografiada de Cara de Gato y el río se mantiene a un nivel fijo. No hay lluvia, infiltración, hidrograma real del río ni calibración, así que los tiempos y las áreas no son predicciones. En el mapa, la capa de radar muestra lo que Sentinel-1 vio de verdad en el máximo, para comparar a ojo.",
   back:"Volver al monitor de inundación",
-  credits:'Terreno: FABDEM (Hawker et al., 2022), a partir de Copernicus WorldDEM-30 © DLR e.V. 2010-2014 y © Airbus Defence and Space GmbH 2014-2018, provisto bajo Copernicus por la Unión Europea y la ESA; uso no comercial. Cauces: MERIT Hydro (Yamazaki et al., 2019). Ubicación de la ruptura: © colaboradores de OpenStreetMap. Agua permanente: JRC Global Surface Water. Radar: Copernicus Sentinel-1. Imagen: Esri World Imagery. <a href="https://github.com/linaq11/Mojana-flood-SAR">Código y método</a>, Lina María Quintero Fonseca.'}
+  credits:'Terreno: FABDEM (Hawker et al., 2022), a partir de Copernicus WorldDEM-30 © DLR e.V. 2010-2014 y © Airbus Defence and Space GmbH 2014-2018, provisto bajo Copernicus por la Unión Europea y la ESA; uso no comercial. Cauces: MERIT Hydro (Yamazaki et al., 2019). Ubicación de la ruptura: © colaboradores de OpenStreetMap. Agua permanente: JRC Global Surface Water. Radar: Copernicus Sentinel-1. Imagen: Esri World Imagery. 3D: three.js. <a href="https://github.com/linaq11/Mojana-flood-SAR">Código y método</a>, Lina María Quintero Fonseca.'}
 };
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let lang=store.get("moj-lang")||"en", theme=store.get("moj-theme")||"dark";
@@ -153,10 +164,12 @@ const $=id=>document.getElementById(id);
 // ---------------- model ----------------
 const RIVER_UPA=40000;     // km2 of drainage area: the Cauca downstream of Caucasia and the Magdalena
 const CREST=4;             // dike crest above the normal river level, m
-const G=9.81, N=0.05, DX=276, WET=0.1;
-let S;                     // all model state
+const BREACH_HALF=160;     // the breach takes every dike cell within this many metres of the chosen one
+const G=9.81, N=0.05, WET=0.1;
+let S;                     // all model state of the scene on screen
 function setup(g){
   const nx=g.nx, ny=g.ny, n=nx*ny, z0=Float32Array.from(g.z), upa=g.upa, occ=g.occ;
+  const dx=g.step*111320*Math.cos((g.box[1]+g.box[3])/2*Math.PI/180);   // cell size in metres
   const river=new Uint8Array(n); for(let i=0;i<n;i++) river[i]=upa[i]>=RIVER_UPA?1:0;
   // normal river level: running median of the terrain in downstream order (drainage area rising), never rising downstream
   const ids=[]; for(let i=0;i<n;i++) if(river[i]) ids.push(i);
@@ -170,23 +183,26 @@ function setup(g){
   const dike=new Uint8Array(n), crest=new Float32Array(n).fill(-Infinity);
   for(let y=1;y<ny-1;y++) for(let x=1;x<nx-1;x++){const i=y*nx+x; if(river[i]) continue;
     for(const j of [i-1,i+1,i-nx,i+nx]) if(river[j]){dike[i]=1; crest[i]=Math.max(crest[i],base[j]+CREST);}}
-  // breach: the dike cell nearest to the mapped location of Cara de Gato
+  // breach: the dike cell nearest to the mapped location of Cara de Gato, and its dike neighbours within BREACH_HALF
   const bx=(g.breach[0]-g.box[0])/g.step, by=(g.box[3]-g.breach[1])/g.step; let br=-1, bd=Infinity;
-  for(let i=0;i<n;i++) if(dike[i]){const d=(i%nx-bx)**2+(Math.floor(i/nx)-by)**2; if(d<bd){bd=d;br=i;}}
+  for(let i=0;i<n;i++) if(dike[i]){const d=(i%nx+0.5-bx)**2+(Math.floor(i/nx)+0.5-by)**2; if(d<bd){bd=d;br=i;}}
+  const brs=[]; for(let i=0;i<n;i++) if(dike[i]&&Math.hypot(i%nx-br%nx,Math.floor(i/nx)-Math.floor(br/nx))*dx<=BREACH_HALF) brs.push(i);
   const zGround=new Float32Array(n);   // terrain without the dike, river beds 1 m below the normal level
   for(let i=0;i<n;i++) zGround[i]=river[i]?base[i]-1:z0[i];
-  S={g,nx,ny,n,z0,occ,river,base,dike,crest,br,zGround,rids:Int32Array.from(ids),z:new Float32Array(n),h:new Float32Array(n),
-     qx:new Float32Array(n),qy:new Float32Array(n),out:new Float32Array(n),t:0,hland:0,stage:3,open:true,shade:new Float32Array(n)};
+  const old=S;
+  S={g,nx,ny,n,dx,z0,occ,river,base,dike,crest,br,brs,zGround,rids:Int32Array.from(ids),z:new Float32Array(n),h:new Float32Array(n),
+     qx:new Float32Array(n),qy:new Float32Array(n),out:new Float32Array(n),t:0,hland:0,stage:old?old.stage:3,open:old?old.open:true,
+     shade:new Float32Array(n),dirtyZ:true};
   resetModel();
 }
 function resetModel(){
   const s=S; for(let i=0;i<s.n;i++){s.z[i]=s.dike[i]?Math.max(s.zGround[i],s.crest[i]):s.zGround[i]; s.h[i]=0; s.qx[i]=0; s.qy[i]=0;}
   applyBreach(); s.t=0; s.hland=0; fillRiver(); shadeAll();
 }
-function applyBreach(){const s=S, i=s.br; s.z[i]=s.open?s.zGround[i]:Math.max(s.zGround[i],s.crest[i]);}
+function applyBreach(){const s=S; for(const i of s.brs) s.z[i]=s.open?s.zGround[i]:Math.max(s.zGround[i],s.crest[i]); s.dirtyZ=true;}
 function fillRiver(){const s=S; for(const i of s.rids) s.h[i]=Math.max(0,s.base[i]+s.stage-s.z[i]);}
 function step(){
-  const {nx,ny,n,z,h,qx,qy,out,river}=S;
+  const {nx,ny,n,z,h,qx,qy,out,river,dx:DX}=S;
   fillRiver();
   for(let x=0;x<nx;x++){h[x]=0;h[(ny-1)*nx+x]=0;} for(let y=0;y<ny;y++){h[y*nx]=0;h[y*nx+nx-1]=0;}   // open edges drain
   let hmax=0.01; for(const i of S.rids) if(h[i]>hmax) hmax=h[i]; if(S.hland>hmax) hmax=S.hland;   // deepest water: river cells now, land at the end of the last step
@@ -214,35 +230,138 @@ function step(){
     if(h[i]>hl&&!river[i]) hl=h[i];}
   S.hland=hl; S.t+=dt;
 }
-function floodedKm2(){const s=S; let c=0; for(let i=0;i<s.n;i++) if(s.h[i]>WET&&!s.river[i]&&s.occ[i]<50) c++; return c*DX*DX/1e6;}
+function floodedKm2(){const s=S; let c=0; for(let i=0;i<s.n;i++) if(s.h[i]>WET&&!s.river[i]&&s.occ[i]<50) c++; return c*s.dx*s.dx/1e6;}
+function brushAt(cx,cy,R){   // cx, cy in cell units
+  for(let y=Math.floor(cy-R);y<=cy+R;y++) for(let x=Math.floor(cx-R);x<=cx+R;x++){
+    if(x<1||y<1||x>=S.nx-1||y>=S.ny-1) continue;
+    const i=y*S.nx+x, f=Math.max(0,1-Math.hypot(x+0.5-cx,y+0.5-cy)/R); if(!f) continue;
+    if(tool==="water"){S.h[i]+=0.6*f; if(S.h[i]>S.hland) S.hland=S.h[i];}   // keeps the next time step stable
+    else {S.z[i]+=(tool==="raise"?0.8:-0.8)*f; if(S.river[i]) S.zGround[i]=S.z[i]; S.dirtyZ=true;}}
+  for(let y=Math.floor(cy-R-1);y<=cy+R+1;y++) for(let x=Math.floor(cx-R-1);x<=cx+R+1;x++) if(x>=0&&y>=0&&x<S.nx&&y<S.ny) shadeCell(y*S.nx+x);
+}
 
-// ---------------- drawing ----------------
+// ---------------- 2D map drawing ----------------
 const RAMP=[[0,[38,70,60]],[25,[62,104,74]],[40,[112,138,86]],[80,[160,152,104]],[200,[138,114,86]],[700,[214,206,192]]];
 function rampColor(v){for(let k=1;k<RAMP.length;k++) if(v<=RAMP[k][0]||k===RAMP.length-1){const [a,ca]=RAMP[k-1],[b,cb]=RAMP[k],f=Math.max(0,Math.min(1,(v-a)/(b-a)));return ca.map((c,j)=>c+(cb[j]-c)*f);}}
-function shadeCell(i){const {nx,ny,z}=S, x=i%nx, y=(i/nx)|0;
+function shadeCell(i){const {nx,ny,z,dx}=S, x=i%nx, y=(i/nx)|0;
   const zl=z[y*nx+Math.max(0,x-1)], zr=z[y*nx+Math.min(nx-1,x+1)], zu=z[Math.max(0,y-1)*nx+x], zd=z[Math.min(ny-1,y+1)*nx+x];
-  const gx=(zr-zl)/(2*DX)*6, gy=(zd-zu)/(2*DX)*6, l=(-gx*-0.6+gy*-0.6+1)/Math.sqrt(gx*gx+gy*gy+1)/Math.sqrt(1.72);   // light from the north-west, slopes exaggerated 6 times
+  const gx=(zr-zl)/(2*dx)*6, gy=(zd-zu)/(2*dx)*6, l=(-gx*-0.6+gy*-0.6+1)/Math.sqrt(gx*gx+gy*gy+1)/Math.sqrt(1.72);   // light from the north-west, slopes exaggerated 6 times
   S.shade[i]=Math.max(0.45,Math.min(1.25,0.35+0.9*l));}
 function shadeAll(){for(let i=0;i<S.n;i++) shadeCell(i);}
 let view="relief", img, ctx;
 function draw(){
-  const {n,z,h,river,occ,dike,shade,br,open}=S, d=img.data, rel=view==="relief";
+  const {n,z,h,river,occ,dike,shade,brs,open}=S, d=img.data, rel=view==="relief";
   for(let i=0;i<n;i++){const p=i*4; let r=0,g=0,b=0,a=0;
     if(rel){const c=rampColor(z[i]); r=c[0]*shade[i]; g=c[1]*shade[i]; b=c[2]*shade[i]; a=255;}
     if(river[i]||occ[i]>=50){r=44;g=120;b=176;a=rel?255:200;}
     else if(h[i]>0.05){const w=Math.min(0.92,0.42+h[i]*0.22);   // deeper water, more opaque
       r=rel?r*(1-w)+240*w:240; g=rel?g*(1-w)+165*w:165; b=rel?b*(1-w)+58*w:58; a=rel?255:Math.round(255*w);}
     else if(dike[i]){r=rel?40:30;g=rel?36:28;b=rel?32:24;a=rel?255:150;}
-    if(i===br){r=255;g=111;b=97;a=open?255:120;}
     d[p]=r;d[p+1]=g;d[p+2]=b;d[p+3]=a;}
+  for(const i of brs){const p=i*4; d[p]=255;d[p+1]=111;d[p+2]=97;d[p+3]=open?255:120;}
   ctx.putImageData(img,0,0);
 }
 function stats(){$("tDays").textContent=num(S.t/86400,1); $("area").textContent=num(floodedKm2());}
 
-// ---------------- map and interaction ----------------
-let map, running=true, tool="pan", painting=false;
+// ---------------- scenes ----------------
+let scene3=null, map=null, mapReady=false, scene="3d", running=true, tool="pan", painting=false;
+const grids={};
+function loadGrid(name){return grids[name]||(grids[name]=fetch(name).then(r=>r.json()));}
+async function showScene(name){
+  scene=name;
+  document.querySelectorAll("[data-scene]").forEach(o=>o.setAttribute("aria-pressed",o.dataset.scene===name));
+  $("mapOnly").hidden=name!=="map"; $("map").hidden=name!=="map"; $("three").hidden=name!=="3d";
+  setup(await loadGrid(name==="3d"?"grid_breach.json":"grid.json"));
+  if(name==="3d"){ if(!scene3) scene3=await build3d(); else scene3.rebuild(); }
+  else { if(!map) buildMap(); else {map.resize(); setMapSources();} draw(); }
+  setTool(tool); render();
+}
+
+// ---- 3D sand table (three.js) ----
+async function build3d(){
+  const THREE=await import("three"), {OrbitControls}=await import("three/addons/controls/OrbitControls.js");
+  const canvas=$("three"), renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  const sc=new THREE.Scene(), cam=new THREE.PerspectiveCamera(38,1,1,5000);
+  const controls=new OrbitControls(cam,canvas); controls.enableDamping=true; controls.maxPolarAngle=1.38; controls.minDistance=40; controls.maxDistance=1100;
+  const U={uK:{value:7},uZ0:{value:15},uTop:{value:80},uTime:{value:0},uLight:{value:new THREE.Vector3(-0.45,0.8,-0.4).normalize()}};
+  // height on screen: logarithmic above the lowest ground, so the plain keeps its relief next to the hills
+  const disp=`float disp(float z){return uK*log(1.0+max(z-uZ0,0.0)/4.0);}`;
+  const ground=new THREE.ShaderMaterial({uniforms:U,extensions:{derivatives:true},
+    vertexShader:`uniform float uK,uZ0; attribute float aZ; attribute float aM; varying vec3 vP; varying float vD; varying float vM; ${disp}
+      void main(){vec3 p=position; p.y=disp(aZ); vD=p.y; vM=aM; vec4 w=modelMatrix*vec4(p,1.0); vP=w.xyz; gl_Position=projectionMatrix*viewMatrix*w;}`,
+    fragmentShader:`uniform float uTop; uniform vec3 uLight; varying vec3 vP; varying float vD; varying float vM;
+      vec3 ramp(float t){
+        vec3 c0=vec3(.25,.56,.23),c1=vec3(.56,.75,.25),c2=vec3(.89,.84,.35),c3=vec3(.91,.64,.24),c4=vec3(.71,.40,.23),c5=vec3(.48,.29,.20),c6=vec3(.95,.94,.91);
+        t=clamp(t,0.,1.)*6.; if(t<1.)return mix(c0,c1,t); if(t<2.)return mix(c1,c2,t-1.); if(t<3.)return mix(c2,c3,t-2.);
+        if(t<4.)return mix(c3,c4,t-3.); if(t<5.)return mix(c4,c5,t-4.); return mix(c5,c6,t-5.);}
+      void main(){vec3 nrm=normalize(cross(dFdx(vP),dFdy(vP)));
+        float l=.42+.68*max(dot(nrm,uLight),0.);
+        vec3 col=ramp(vD/uTop);
+        float c=vD/0.7, line=1.-smoothstep(.0,1.2,abs(fract(c-.5)-.5)/max(fwidth(c),1e-4));   // contour lines
+        col=mix(col,col*.38,line*.75);
+        if(vM>.5&&vM<1.5) col=vec3(.30,.22,.17);      // dike
+        if(vM>1.5) col=vec3(1.,.43,.38);              // breach
+        gl_FragColor=vec4(col*l,1.);}`});
+  const water=new THREE.ShaderMaterial({uniforms:U,transparent:true,depthWrite:false,extensions:{derivatives:true},
+    vertexShader:`uniform float uK,uZ0; attribute float aZ; attribute float aH; varying vec3 vP; varying float vH; ${disp}
+      void main(){vec3 p=position; p.y=aH>0.02?disp(aZ+aH)+0.08:disp(aZ)-0.6; vH=aH; vec4 w=modelMatrix*vec4(p,1.0); vP=w.xyz; gl_Position=projectionMatrix*viewMatrix*w;}`,
+    fragmentShader:`uniform vec3 uLight; uniform float uTime; varying vec3 vP; varying float vH;
+      void main(){ if(vH<0.03) discard;
+        vec3 nrm=normalize(cross(dFdx(vP),dFdy(vP)));
+        nrm=normalize(nrm+0.06*vec3(sin(vP.x*.9+uTime*1.7),0.,cos(vP.z*.8-uTime*1.3)));   // small ripples
+        float d=smoothstep(0.,3.5,vH);
+        vec3 col=mix(vec3(.56,.89,.94),vec3(.07,.25,.53),d);
+        vec3 v=normalize(cameraPosition-vP), hv=normalize(uLight+v);
+        float spec=pow(max(dot(nrm,hv),0.),60.)*.7, fres=pow(1.-max(dot(nrm,v),0.),3.)*.35;
+        gl_FragColor=vec4(col*(.55+.5*max(dot(nrm,uLight),0.))+spec+fres,.62+.3*d);}`});
+  let mesh, wmesh, ring, aZ, aH, aM;
+  function rebuild(){
+    if(mesh){sc.remove(mesh,wmesh,ring); mesh.geometry.dispose();}
+    const {nx,ny}=S, geo=new THREE.PlaneGeometry(nx-1,ny-1,nx-1,ny-1); geo.rotateX(-Math.PI/2);   // vertex order = grid order, row 0 north
+    aZ=new THREE.BufferAttribute(new Float32Array(S.n),1); aH=new THREE.BufferAttribute(new Float32Array(S.n),1); aM=new THREE.BufferAttribute(new Float32Array(S.n),1);
+    aH.setUsage(THREE.DynamicDrawUsage); aZ.setUsage(THREE.DynamicDrawUsage);
+    geo.setAttribute("aZ",aZ); geo.setAttribute("aH",aH); geo.setAttribute("aM",aM);
+    let lo=Infinity, hi=-Infinity; const zs=Array.from(S.z0).sort((a,b)=>a-b); lo=zs[Math.floor(zs.length*0.01)]; hi=zs[Math.floor(zs.length*0.995)];
+    U.uZ0.value=lo-3; U.uTop.value=U.uK.value*Math.log(1+(hi-U.uZ0.value)/4);
+    mesh=new THREE.Mesh(geo,ground); wmesh=new THREE.Mesh(geo,water); wmesh.renderOrder=1; sc.add(mesh,wmesh);
+    ring=new THREE.Mesh(new THREE.TorusGeometry(4,.5,10,48),new THREE.MeshBasicMaterial({color:0xff6f61})); ring.rotation.x=-Math.PI/2; sc.add(ring);
+    const bx=S.br%nx-(nx-1)/2, bz=Math.floor(S.br/nx)-(ny-1)/2;
+    ring.position.set(bx,U.uK.value*Math.log(1+Math.max(S.crest[S.br]-U.uZ0.value,0)/4)+2,bz);
+    const f=innerWidth<=900?1.9:0.8; controls.target.set(0,4,10); cam.position.set(150*f,400*f,480*f); controls.update();   // narrow screens need more distance
+    S.dirtyZ=true; updateMask(); sync();
+  }
+  function updateMask(){const m=aM.array; for(let i=0;i<S.n;i++) m[i]=S.dike[i]?1:0; if(S.open) for(const i of S.brs) m[i]=2; aM.needsUpdate=true;}
+  function sync(){
+    if(S.dirtyZ){aZ.array.set(S.z); aZ.needsUpdate=true; S.dirtyZ=false; updateMask();}
+    const w=aH.array, h=S.h; for(let i=0;i<S.n;i++) w[i]=(S.occ[i]>=50&&!S.river[i])?Math.max(h[i],0.4):h[i];   // permanent water shows as water
+    aH.needsUpdate=true;
+  }
+  function resize(){const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); cam.aspect=w/h;
+    if(w>900) cam.setViewOffset(w,h,-150,0,w,h); else cam.setViewOffset(w,h,0,h*0.24,w,h);   // centre the table in the space the panel leaves free
+    cam.updateProjectionMatrix();}
+  addEventListener("resize",resize); resize();
+  // picking: march the ray down to the displayed ground height a few times
+  const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), plane=new THREE.Plane(new THREE.Vector3(0,1,0),0), hit=new THREE.Vector3();
+  function cellAt(e){const r=canvas.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); ray.setFromCamera(ndc,cam);
+    let y=10, c=null; for(let k=0;k<5;k++){plane.constant=-y; if(!ray.ray.intersectPlane(plane,hit)) return null;
+      const cx=hit.x+(S.nx-1)/2+0.5, cy=hit.z+(S.ny-1)/2+0.5; c=[cx,cy];
+      const i=Math.min(S.n-1,Math.max(0,Math.floor(cy)*S.nx+Math.floor(cx))); y=U.uK.value*Math.log(1+Math.max(S.z[i]+S.h[i]-U.uZ0.value,0)/4);}
+    return c;}
+  canvas.addEventListener("pointerdown",e=>{if(tool==="pan")return; painting=true; const c=cellAt(e); if(c) brushAt(c[0],c[1],6);});
+  canvas.addEventListener("pointermove",e=>{if(!painting||scene!=="3d")return; const c=cellAt(e); if(c) brushAt(c[0],c[1],6);});
+  function setBg(){const bg=getComputedStyle(document.documentElement).getPropertyValue("--bg2").trim(); sc.background=null; sc.fog=new THREE.Fog(bg,900,2000);}   // the page gradient shows through the canvas
+  setBg(); rebuild();
+  return {rebuild,setBg,controls,frame(now){U.uTime.value=now/1000; ring.scale.setScalar(1+0.12*Math.sin(now/300)); ring.visible=S.open; sync(); controls.update(); renderer.render(sc,cam);}};
+}
+
+// ---- 2D map of the whole region (MapLibre) ----
 function corners(){const b=S.g.box; return [[b[0],b[3]],[b[2],b[3]],[b[2],b[1]],[b[0],b[1]]];}
-function build(){
+function setMapSources(){
+  if(!mapReady) return; const b=S.g.box, step=S.g.step;
+  map.getSource("breach").setData({type:"Point",coordinates:[b[0]+(S.br%S.nx+0.5)*step,b[3]-(Math.floor(S.br/S.nx)+0.5)*step]});
+}
+function buildMap(){
   const b=S.g.box, cv=$("sim"); cv.width=S.nx; cv.height=S.ny; ctx=cv.getContext("2d"); img=ctx.createImageData(S.nx,S.ny); draw();
   map=new maplibregl.Map({container:"map",attributionControl:{compact:true},
     style:{version:8,sources:{esri:{type:"raster",tileSize:256,maxzoom:19,tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],attribution:"Imagery: Esri, Maxar, Earthstar Geographics"}},layers:[{id:"esri",type:"raster",source:"esri",paint:{"raster-saturation":-0.4,"raster-brightness-max":0.8}}]},
@@ -251,62 +370,67 @@ function build(){
   map.once("style.load",()=>{
     map.addSource("sim",{type:"canvas",canvas:cv,coordinates:corners(),animate:true});
     map.addLayer({id:"sim",type:"raster",source:"sim",paint:{"raster-resampling":"nearest","raster-fade-duration":0}});
-    const bx=b[0]+(S.br%S.nx+0.5)*S.g.step, by=b[3]-(Math.floor(S.br/S.nx)+0.5)*S.g.step;   // ring around the breach cell
-    map.addSource("breach",{type:"geojson",data:{type:"Point",coordinates:[bx,by]}});
+    map.addSource("breach",{type:"geojson",data:{type:"FeatureCollection",features:[]}});
     map.addLayer({id:"breach",type:"circle",source:"breach",paint:{"circle-radius":11,"circle-color":"rgba(0,0,0,0)","circle-stroke-width":2.5,"circle-stroke-color":"#ff6f61"}});
     map.addSource("obs",{type:"image",url:"../data/maps/2022-12.png",coordinates:corners()});
-    map.addLayer({id:"obs",type:"raster",source:"obs",layout:{visibility:"none"},paint:{"raster-opacity":.9,"raster-saturation":-1,"raster-brightness-min":.35,"raster-fade-duration":0}},"sim");   // grey and under the simulation, so the two read apart
+    map.addLayer({id:"obs",type:"raster",source:"obs",layout:{visibility:$("obs").checked?"visible":"none"},paint:{"raster-opacity":.9,"raster-saturation":-1,"raster-brightness-min":.35,"raster-fade-duration":0}},"sim");   // grey and under the simulation, so the two read apart
+    mapReady=true; setMapSources();
   });
   const el=map.getCanvasContainer();
-  el.addEventListener("pointerdown",e=>{if(tool==="pan")return; painting=true; brush(e);});
-  el.addEventListener("pointermove",e=>{if(painting) brush(e);});
-  addEventListener("pointerup",()=>painting=false);
-  requestAnimationFrame(loop);
+  el.addEventListener("pointerdown",e=>{if(tool==="pan")return; painting=true; brushMap(e);});
+  el.addEventListener("pointermove",e=>{if(painting&&scene==="map") brushMap(e);});
 }
-function brush(e){
+function brushMap(e){
   const r=map.getCanvas().getBoundingClientRect(), ll=map.unproject([e.clientX-r.left,e.clientY-r.top]), g=S.g;
-  const cx=(ll.lng-g.box[0])/g.step, cy=(g.box[3]-ll.lat)/g.step, R=4;
-  for(let y=Math.floor(cy-R);y<=cy+R;y++) for(let x=Math.floor(cx-R);x<=cx+R;x++){
-    if(x<1||y<1||x>=S.nx-1||y>=S.ny-1) continue;
-    const i=y*S.nx+x, f=Math.max(0,1-Math.hypot(x+0.5-cx,y+0.5-cy)/R); if(!f) continue;
-    if(tool==="water"){S.h[i]+=0.6*f; if(S.h[i]>S.hland) S.hland=S.h[i];}   // keeps the next time step stable
-    else {S.z[i]+=(tool==="raise"?0.8:-0.8)*f; if(S.river[i]) S.zGround[i]=S.z[i];}}
-  for(let y=Math.floor(cy-R-1);y<=cy+R+1;y++) for(let x=Math.floor(cx-R-1);x<=cx+R+1;x++) if(x>=0&&y>=0&&x<S.nx&&y<S.ny) shadeCell(y*S.nx+x);
+  brushAt((ll.lng-g.box[0])/g.step,(g.box[3]-ll.lat)/g.step,4);
   if(!running) draw();
 }
+addEventListener("pointerup",()=>painting=false);
+
 let lastStats=0;
 function loop(now){
-  if(running){const t0=performance.now(); do step(); while(performance.now()-t0<14); draw();}
-  if(now-lastStats>250){stats(); lastStats=now;}
+  if(S){
+    if(running){const t0=performance.now(); do step(); while(performance.now()-t0<14);}
+    if(scene==="3d"&&scene3) scene3.frame(now);
+    else if(scene==="map"&&img&&running) draw();
+    if(now-lastStats>250){stats(); lastStats=now;}
+  }
   requestAnimationFrame(loop);
 }
+function setTool(name){tool=name;
+  document.querySelectorAll("[data-tool]").forEach(o=>o.setAttribute("aria-pressed",o.dataset.tool===name));
+  if(map){name==="pan"?map.dragPan.enable():map.dragPan.disable();}
+  if(scene3) scene3.controls.enabled=name==="pan";
+  $("map").classList.toggle("tool",name!=="pan"); $("three").classList.toggle("tool",name!=="pan");}
 function render(){
   document.documentElement.lang=lang;
   document.querySelectorAll("[data-i18n]").forEach(e=>e.textContent=t(e.dataset.i18n));
   document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang));
   document.querySelectorAll("[data-th]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.th===theme));
   $("run").textContent=running?t("pause"):t("run");
-  $("breach").textContent=S&&!S.open?t("closed"):t("open");
+  $("breach").textContent=S&&!S.open?t("closed"):t("open"); $("breach").setAttribute("aria-pressed",!S||S.open);
   $("stageOut").textContent="+"+num(+$("stage").value,1)+" m";
-  $("legend").innerHTML=[["--perm","lg_river"],["--flood","lg_sim"],["#2a241f","lg_dike"],["--event","lg_breach"]].map(([c,k])=>`<span><i style="background:${c.startsWith("--")?`var(${c})`:c}"></i>${t(k)}</span>`).join("");
+  const sw=(c,k)=>`<span><i style="background:${c.startsWith("--")?`var(${c})`:c}"></i>${t(k)}</span>`;
+  $("legend").innerHTML=scene==="3d"
+    ?`<span><i class="ramp"></i>${t("lg_ground")}</span><span><i class="wramp"></i>${t("lg_water")}</span>`+sw("#4d382b","lg_dike")+sw("--event","lg_breach")
+    :sw("--perm","lg_river")+sw("--flood","lg_sim")+sw("#2a241f","lg_dike")+sw("--event","lg_breach");
   $("credits").innerHTML=t("credits");
   if(S) stats();
 }
 document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{lang=b.dataset.lang;store.set("moj-lang",lang);render();});
-document.querySelectorAll("[data-th]").forEach(b=>b.onclick=()=>{theme=b.dataset.th;store.set("moj-theme",theme);document.documentElement.setAttribute("data-theme",theme);render();});
+document.querySelectorAll("[data-th]").forEach(b=>b.onclick=()=>{theme=b.dataset.th;store.set("moj-theme",theme);document.documentElement.setAttribute("data-theme",theme);if(scene3)scene3.setBg();render();});
+document.querySelectorAll("[data-scene]").forEach(b=>b.onclick=()=>{if(b.dataset.scene!==scene) showScene(b.dataset.scene);});
 $("run").onclick=()=>{running=!running; render();};
-$("breach").onclick=()=>{S.open=!S.open; $("breach").setAttribute("aria-pressed",S.open); applyBreach(); shadeCell(S.br); draw(); render();};
-$("reset").onclick=()=>{resetModel(); draw(); stats();};
+$("breach").onclick=()=>{S.open=!S.open; applyBreach(); for(const i of S.brs) shadeCell(i); if(scene==="map") draw(); render();};
+$("reset").onclick=()=>{resetModel(); S.dirtyZ=true; if(scene==="map") draw(); stats();};
 $("stage").oninput=e=>{S.stage=+e.target.value; render();};
-document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{tool=b.dataset.tool;
-  document.querySelectorAll("[data-tool]").forEach(o=>o.setAttribute("aria-pressed",o===b));
-  if(map){tool==="pan"?map.dragPan.enable():map.dragPan.disable(); $("map").classList.toggle("tool",tool!=="pan");}});
+document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{view=b.dataset.view;
   document.querySelectorAll("[data-view]").forEach(o=>o.setAttribute("aria-pressed",o===b)); draw();});
 $("obs").onchange=e=>{if(map&&map.getLayer("obs")) map.setLayoutProperty("obs","visibility",e.target.checked?"visible":"none");};
 if(matchMedia("(prefers-reduced-motion: reduce)").matches) running=false;
 render();
-fetch("grid.json").then(r=>r.json()).then(g=>{setup(g); render(); build();});
+showScene("3d").then(()=>requestAnimationFrame(loop));
 </script>
 </body>
 </html>

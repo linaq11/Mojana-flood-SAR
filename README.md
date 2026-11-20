@@ -41,18 +41,18 @@ The preregistered expectation, an F1 of 0.7 or more for open water, is met. Two 
 
 **https://linaq11.github.io/Mojana-flood-SAR/sandbox/**
 
-A digital version of an augmented-reality sandbox, on the real terrain of La Mojana. The Cauca runs behind a dike; you can open or close the breach at Cara de Gato, raise the river, build or dig the ground by dragging on the map, pour water, and lay the radar flood of December 2022 underneath for comparison.
+A digital version of an augmented-reality sandbox, on the real terrain of La Mojana. The Cauca runs behind a dike; you can open or close the breach at Cara de Gato, raise the river, build or dig the ground by dragging, and pour water. The 3D view is a close-up of about 38 by 38 km around the breach, coloured by height with contour lines like a sand table; the map view covers the whole region and can lay the radar flood of December 2022 underneath for comparison.
 
-![Flood sandbox after five simulated days with the breach open](docs/sandbox/screenshot_dark_en.jpg)
+![Flood sandbox in 3D after two simulated days with the breach open](docs/sandbox/screenshot_dark_en.jpg)
 
 How it works, all in the browser:
 
-* Terrain: FABDEM, the Copernicus 30 m surface model with forests and buildings removed, averaged to a 0.0025° grid (about 275 m, 400 by 440 cells).
+* Terrain: FABDEM, the Copernicus 30 m surface model with forests and buildings removed, averaged to a 0.001° grid around the breach for the 3D view (about 110 m, 350 by 350 cells) and to a 0.0025° grid of the whole region for the map (about 275 m, 400 by 440 cells). Heights in 3D are drawn on a logarithmic scale above the lowest ground, so the lowlands are exaggerated more than the hills.
 * Rivers: cells with more than 40,000 km² of drainage area in MERIT Hydro, which picks out the Cauca downstream of Caucasia and the Magdalena. Their normal level is a running median of the terrain along the channel that never rises downstream.
-* Dike: every land cell that shares an edge with a river cell, raised to 4 m above the normal river level. The breach is the dike cell nearest to the OpenStreetMap feature "Caregato" (8.1553° N, 74.7903° W), one cell wide.
+* Dike: every land cell that shares an edge with a river cell, raised to 4 m above the normal river level. The breach is the dike cell nearest to the OpenStreetMap feature "Caregato" (8.1553° N, 74.7903° W) and the dike cells within 160 m of it: three cells, about 300 m, on the close-up grid, and one 275 m cell on the regional grid.
 * Flow: the local inertial equations of Bates et al. (2010), Manning's n of 0.05, a time step limited by the wave speed, and a limiter so that no cell loses more water than it holds. The river cells are held at the chosen level and the edges of the grid drain freely.
 
-**It is a demonstration, not a validated model.** There is no rain, infiltration, real river hydrograph or calibration, the dike is drawn along every bank instead of where dikes exist, and a 275 m cell is far wider than the real breach. Times and areas in the sandbox are not predictions and are not compared with the radar series. The model was written twice, in NumPy and in JavaScript, and both give the same flooded area after 12 simulated hours (41 km² with the breach open, under 1 km² with it closed), which checks the code, not the physics.
+**It is a demonstration, not a validated model.** There is no rain, infiltration, real river hydrograph or calibration, the dike is drawn along every bank instead of where dikes exist, and the breach width is set by the grid, not measured. Times and areas in the sandbox are not predictions and are not compared with the radar series. The model was written twice, in NumPy and in JavaScript, and both give the same flooded area after 12 simulated hours (41 km² with the breach open, under 1 km² with it closed), on the regional grid, which checks the code, not the physics.
 
 ## Method
 
@@ -73,11 +73,12 @@ pip install -e ".[test]"
 python scripts/mojana_series.py --project <your-earth-engine-project>   # monthly areas, data/mojana_monthly.csv
 python scripts/check_s2.py --project <your-earth-engine-project>        # check against Sentinel-2, data/s2_check.csv
 python scripts/monthly_maps.py --project <your-earth-engine-project>    # map frames, docs/data/maps
-python scripts/sandbox_grid.py --project <your-earth-engine-project>    # terrain and river grid, docs/sandbox/grid.json
+python scripts/sandbox_grid.py --project <your-earth-engine-project>    # regional grid, docs/sandbox/grid.json
+python scripts/sandbox_grid.py --project <your-earth-engine-project> --zone breach   # close-up grid, docs/sandbox/grid_breach.json
 python -m http.server --directory docs
 ```
 
-`pytest` checks that the series has every month, that flood never exceeds water in a month, that the dike events fall inside the series, and that the sandbox grid has no holes and its breach sits within about 2 km of the river channel.
+`pytest` checks that the series has every month, that flood never exceeds water in a month, that the dike events fall inside the series, and that both sandbox grids have no holes and their breach sits within about 2 km of the river channel.
 
 ## Limits
 
@@ -91,6 +92,6 @@ python -m http.server --directory docs
 
 Radar: Copernicus Sentinel-1, ESA. Permanent water: Pekel et al. (2016), JRC Global Surface Water. Elevation: SRTM. Optical check: Copernicus Sentinel-2. Basemap: Esri World Imagery. Map: MapLibre GL JS.
 
-Sandbox: FABDEM, Hawker et al. (2022), *Environmental Research Letters* 17, 024016, produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018, provided under Copernicus by the European Union and ESA. MERIT Hydro, Yamazaki et al. (2019), *Water Resources Research* 55, 5053-5073. Breach location © OpenStreetMap contributors (ODbL). Flow equations: Bates, Horritt and Fewtrell (2010), *Journal of Hydrology* 387, 33-45. `docs/sandbox/grid.json` is derived from FABDEM, which allows non-commercial use only, and from MERIT Hydro (CC BY-NC 4.0 or ODbL 1.0), so that file is not covered by the MIT License and may be used for non-commercial purposes only.
+Sandbox: FABDEM, Hawker et al. (2022), *Environmental Research Letters* 17, 024016, produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018, provided under Copernicus by the European Union and ESA. MERIT Hydro, Yamazaki et al. (2019), *Water Resources Research* 55, 5053-5073. Breach location © OpenStreetMap contributors (ODbL). Flow equations: Bates, Horritt and Fewtrell (2010), *Journal of Hydrology* 387, 33-45. 3D: three.js. `docs/sandbox/grid.json` and `docs/sandbox/grid_breach.json` are derived from FABDEM, which allows non-commercial use only, and from MERIT Hydro (CC BY-NC 4.0 or ODbL 1.0), so those files are not covered by the MIT License and may be used for non-commercial purposes only.
 
 Lina María Quintero Fonseca, geographer, MSc student in Geomatics at the Universidad Nacional de Colombia. Code under the MIT License; to cite, use `CITATION.cff`.

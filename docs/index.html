@@ -11,29 +11,29 @@
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
 :root{
-  --bg:#06141c; --glass:rgba(8,26,36,.74); --glass-strong:rgba(7,22,31,.9); --line:rgba(190,228,240,.13);
-  --ink:#e6f4f8; --muted:#97b9c4; --faint:#678995; --gold1:#7fd8ea; --gold2:#4fbcd4;
-  --flood:#f0a53a; --before:#8ec9e3; --perm:#2c78b0; --event:#ff6f61;
-  --chip:rgba(255,255,255,.04); --grid:rgba(190,228,240,.10); --shadow:0 18px 50px rgba(0,0,0,.42);
-  --on:rgba(79,188,212,.15); --on-line:rgba(79,188,212,.55); --attrib:rgba(5,16,22,.72);
+  --bg:#0e3557; --bg2:#1f6c9e; --glass:rgba(20,72,112,.42); --glass-strong:rgba(14,56,92,.56); --line:rgba(210,236,255,.24);
+  --ink:#f2f8fe; --muted:#c6ddf0; --faint:#94b7d4; --gold1:#a8e0ff; --gold2:#7fcaf6;
+  --flood:#f0a53a; --before:#8ec9e3; --perm:#2c78b0; --event:#ff7a6c;
+  --chip:rgba(255,255,255,.08); --grid:rgba(210,236,255,.14); --shadow:0 18px 50px rgba(3,20,40,.35);
+  --on:rgba(140,210,255,.2); --on-line:rgba(140,210,255,.65); --attrib:rgba(14,53,87,.7);
   --display:"Bricolage Grotesque","Manrope",system-ui,sans-serif; --body:"Manrope",system-ui,sans-serif;
 }
 :root[data-theme="light"]{
-  --bg:#d9edf1; --glass:rgba(226,243,247,.8); --glass-strong:rgba(219,239,244,.92); --line:rgba(14,60,78,.16);
-  --ink:#0b2630; --muted:#355a67; --faint:#58808c; --gold1:#0e7590; --gold2:#0b5f75;
+  --bg:#c9e2f5; --bg2:#f2f9ff; --glass:rgba(244,250,255,.5); --glass-strong:rgba(236,246,255,.64); --line:rgba(20,70,120,.18);
+  --ink:#0b2742; --muted:#2c5274; --faint:#4f7092; --gold1:#1667b8; --gold2:#11558f;
   --flood:#c2780c; --before:#3d8db4; --perm:#1b5582; --event:#c23b30;
-  --chip:rgba(255,255,255,.5); --grid:rgba(11,38,48,.12); --shadow:0 18px 50px rgba(14,60,78,.18);
-  --on:rgba(14,117,144,.13); --on-line:rgba(14,117,144,.5); --attrib:rgba(226,243,247,.85);
+  --chip:rgba(255,255,255,.5); --grid:rgba(11,39,66,.12); --shadow:0 18px 50px rgba(20,70,120,.16);
+  --on:rgba(22,103,184,.13); --on-line:rgba(22,103,184,.45); --attrib:rgba(244,250,255,.8);
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
+html,body{margin:0;height:100%;background:radial-gradient(ellipse 90% 80% at 68% 42%,var(--bg2),var(--bg) 75%) fixed var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
 #map{position:fixed;inset:0}
 .ui{position:fixed;inset:0;pointer-events:none;padding:16px;display:flex;gap:16px}
 .panel{pointer-events:auto;width:min(410px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--glass);
-  backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--line);
+  backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);border:1px solid var(--line);
   border-radius:18px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:16px}
-.timeline{pointer-events:auto;position:fixed;left:442px;right:16px;bottom:16px;background:var(--glass);backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 18px}
+.timeline{pointer-events:auto;position:fixed;left:442px;right:16px;bottom:16px;background:var(--glass);backdrop-filter:blur(22px) saturate(1.5);
+  -webkit-backdrop-filter:blur(22px) saturate(1.5);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 18px}
 .top{display:flex;gap:8px;flex-wrap:wrap}
 .toggle{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--chip)}
 .toggle button{font:600 12.5px var(--body);color:var(--muted);background:none;border:0;border-radius:999px;padding:6px 12px;cursor:pointer}
