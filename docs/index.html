@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Mojana Flood Monitor</title>
+<meta name="description" content="Monthly flood extent from Sentinel-1 radar over La Mojana, Colombia, before and after the 2021 Cara de Gato dike break, 2020 to 2025.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+:root{
+  --bg:#0a100e; --glass:rgba(12,21,18,.72); --glass-strong:rgba(10,18,16,.88); --line:rgba(206,232,220,.12);
+  --ink:#e8f1ec; --muted:#9bb2a8; --faint:#6d8379; --gold1:#f4dc9c; --gold2:#c99440;
+  --flood:#e0a23a; --before:#7fb6d6; --perm:#2b6f9e; --event:#e0584c;
+  --chip:rgba(255,255,255,.04); --grid:rgba(206,232,220,.10); --shadow:0 18px 50px rgba(0,0,0,.38);
+  --on:rgba(224,162,58,.14); --on-line:rgba(224,162,58,.55); --attrib:rgba(8,14,12,.7);
+  --display:"Bricolage Grotesque","Manrope",system-ui,sans-serif; --body:"Manrope",system-ui,sans-serif;
+}
+:root[data-theme="light"]{
+  --bg:#d5eadd; --glass:rgba(224,242,231,.78); --glass-strong:rgba(218,239,226,.9); --line:rgba(22,72,46,.16);
+  --ink:#0f2619; --muted:#3a5a48; --faint:#5d7c6b; --gold1:#b98320; --gold2:#7a500f;
+  --flood:#b8780e; --before:#3d86ad; --perm:#1d4f73; --event:#b8392f;
+  --chip:rgba(255,255,255,.45); --grid:rgba(15,38,25,.13); --shadow:0 18px 50px rgba(20,60,40,.2);
+  --on:rgba(184,120,14,.14); --on-line:rgba(184,120,14,.55); --attrib:rgba(224,242,231,.82);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
+#map{position:fixed;inset:0}
+.ui{position:fixed;inset:0;pointer-events:none;padding:16px;display:flex;gap:16px}
+.panel{pointer-events:auto;width:min(410px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--glass);
+  backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--line);
+  border-radius:18px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:16px}
+.timeline{pointer-events:auto;position:fixed;left:442px;right:16px;bottom:16px;background:var(--glass);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 18px}
+.top{display:flex;gap:8px;flex-wrap:wrap}
+.toggle{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--chip)}
+.toggle button{font:600 12.5px var(--body);color:var(--muted);background:none;border:0;border-radius:999px;padding:6px 12px;cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--on);color:var(--gold1);box-shadow:inset 0 0 0 1px var(--on-line)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--gold1);outline-offset:2px}
+h1{font:800 30px/1.04 var(--display);margin:0;text-wrap:balance}
+.sub{color:var(--gold2);font-weight:600;font-size:12.5px;margin-top:6px}
+.lede{color:var(--muted);margin:0}
+.label{font-weight:700;font-size:12.5px;color:var(--faint);margin:0 0 7px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.big{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.big div{border-top:1px solid var(--line);padding-top:8px}
+.big b{display:block;font:800 36px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--gold1)}
+.big span{color:var(--muted);font-size:12.5px}
+.card{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--glass-strong)}
+.card h2{font:700 16px var(--display);margin:0 0 4px}
+.row{display:flex;align-items:center;gap:12px}
+.play{font:700 13px var(--body);color:var(--gold1);background:var(--on);border:1px solid var(--on-line);border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap}
+.month{font:800 22px var(--display);min-width:150px;font-variant-numeric:tabular-nums}
+input[type=range]{flex:1;accent-color:var(--flood)}
+svg text{fill:var(--muted);font:11px var(--body)}
+.credits{color:var(--faint);font-size:11px;margin:0} .credits a{color:var(--muted)}
+.maplibregl-ctrl-attrib{background:var(--attrib)!important;color:var(--muted)} .maplibregl-ctrl-attrib a{color:var(--muted)!important}
+@media (max-width:900px){
+  .ui{flex-direction:column;justify-content:flex-end;padding:0;gap:0}
+  .panel{width:100%;max-height:44vh;border-radius:18px 18px 0 0}
+  .timeline{position:static;border-radius:0;left:0;right:0}
+  .month{min-width:110px;font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="map" role="img" aria-label="Map of monthly flood extent in La Mojana"></div>
+<div class="ui">
+<aside class="panel">
+  <div class="top">
+    <div class="toggle" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true">English</button><button data-lang="es" aria-pressed="false">Español</button></div>
+    <div class="toggle" role="group" aria-label="Theme"><button data-th="dark" aria-pressed="true" data-i18n="dark">Dark</button><button data-th="light" aria-pressed="false" data-i18n="light">Light</button></div>
+  </div>
+  <div><h1 data-i18n="title"></h1><div class="sub" data-i18n="sub"></div></div>
+  <p class="lede" data-i18n="lede"></p>
+  <div class="legend" id="legend"></div>
+  <div class="big" id="big"></div>
+  <div class="card"><h2 data-i18n="checkT"></h2><p class="lede" style="font-size:12.5px" id="check"></p></div>
+  <p class="credits" id="credits"></p>
+</aside>
+<section class="timeline" aria-labelledby="monthLabel">
+  <div class="row">
+    <button class="play" id="play" data-i18n="play"></button>
+    <div class="month" id="monthLabel"></div>
+    <input type="range" id="slider" min="0" max="0" step="1" aria-label="Month">
+  </div>
+  <svg id="chart" viewBox="0 0 900 170" width="100%" preserveAspectRatio="none" role="img" aria-labelledby="chT"><title id="chT">Flooded area by month</title></svg>
+</section>
+</div>
+<script>
+const T={
+ en:{dark:"Dark",light:"Light",title:"La Mojana flood monitor",sub:"Sentinel-1 radar, Cauca River, Colombia, 2020 to 2025",
+  lede:"Monthly flood extent before and after the Cara de Gato dike broke on 27 August 2021, mapped from radar that sees through clouds.",
+  perm:"Permanent water",before:"Water already there before the break",flood:"New flood water",
+  peak:"km² flooded at the peak, {m}",pre:"km², largest month before the break",
+  checkT:"Checked against Sentinel-2",check:"On {d} clear days, radar water matched optical water with an F1 of {f} (all dates pooled) and {a}% overall agreement. On {b} dates the F1 was below 0.7, probably where vegetation stands in the water.",
+  play:"Play",pause:"Pause",km:"km² flooded",nodata:"no radar scenes",
+  ev_break:"Dike breaks",ev_closed:"Breach closed",ev_rebreak:"Breaks again",
+  credits:'Radar: Copernicus Sentinel-1 (ESA). Permanent water: JRC Global Surface Water. Slope: SRTM. Water below −18 dB in VV, new if not water in at least half of the months from January 2020 to July 2021. Imagery: Esri World Imagery. <a href="https://github.com/linaq11/mojana-flood-sar">Code and method</a>, Lina María Quintero Fonseca.'},
+ es:{dark:"Oscuro",light:"Claro",title:"Monitor de inundación de La Mojana",sub:"Radar Sentinel-1, río Cauca, Colombia, 2020 a 2025",
+  lede:"Extensión mensual de la inundación antes y después de la ruptura del dique de Cara de Gato el 27 de agosto de 2021, mapeada con radar, que ve a través de las nubes.",
+  perm:"Agua permanente",before:"Agua que ya había antes de la ruptura",flood:"Inundación nueva",
+  peak:"km² inundados en el máximo, {m}",pre:"km², el mes más alto antes de la ruptura",
+  checkT:"Comparado con Sentinel-2",check:"En {d} días despejados, el agua del radar coincidió con la del óptico con un F1 de {f} (todas las fechas juntas) y {a} % de acuerdo global. En {b} fechas el F1 quedó por debajo de 0,7, probablemente donde hay vegetación dentro del agua.",
+  play:"Reproducir",pause:"Pausa",km:"km² inundados",nodata:"sin escenas de radar",
+  ev_break:"Se rompe el dique",ev_closed:"Se cierra el boquete",ev_rebreak:"Se rompe de nuevo",
+  credits:'Radar: Copernicus Sentinel-1 (ESA). Agua permanente: JRC Global Surface Water. Pendiente: SRTM. Agua por debajo de −18 dB en VV; nueva si no era agua en al menos la mitad de los meses de enero de 2020 a julio de 2021. Imagen: Esri World Imagery. <a href="https://github.com/linaq11/mojana-flood-sar">Código y método</a>, Lina María Quintero Fonseca.'}
+};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let lang=store.get("moj-lang")||"en", theme=store.get("moj-theme")||"dark", D, M, idx=0, timer=null, map;
+document.documentElement.setAttribute("data-theme",theme);
+const t=(k,p={})=>T[lang][k].replace(/\{(\w+)\}/g,(_,x)=>p[x]??"");
+const loc=()=>lang==="es"?"es-CO":"en-US";
+const num=(v,d=0)=>new Intl.NumberFormat(loc(),{minimumFractionDigits:d,maximumFractionDigits:d}).format(v);
+const mname=m=>new Date(m+"-15").toLocaleDateString(loc(),{month:"long",year:"numeric"});
+
+function render(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(e=>e.textContent=t(e.dataset.i18n));
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang));
+  document.querySelectorAll("[data-th]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.th===theme));
+  document.getElementById("play").textContent=timer?t("pause"):t("play");
+  document.getElementById("legend").innerHTML=[["--perm","perm"],["--before","before"],["--flood","flood"]].map(([c,k])=>`<span><i style="background:var(${c})"></i>${t(k)}</span>`).join("");
+  if(!D) return;
+  const ok=D.series.filter(r=>r.n), peak=ok.reduce((a,b)=>b.f18>a.f18?b:a), pre=ok.filter(r=>r.m<"2021-08").reduce((a,b)=>b.f18>a.f18?b:a);
+  document.getElementById("big").innerHTML=`<div><b>${num(peak.f18)}</b><span>${t("peak",{m:mname(peak.m)})}</span></div><div><b>${num(pre.f18)}</b><span>${t("pre")}</span></div>`;
+  const c=D.check;
+  document.getElementById("check").textContent=t("check",{d:c.dates,f:num(c.f1_pooled,2),a:num(c.agreement*100,0),b:c.below_07});
+  document.getElementById("credits").innerHTML=t("credits");
+  show(idx);
+}
+function chart(){
+  const W=900,H=170,m={l:44,r:10,t:18,b:22}, s=D.series, n=s.length, max=1700;
+  const X=i=>m.l+i/(n-1)*(W-m.l-m.r), Y=v=>H-m.b-v/max*(H-m.t-m.b);
+  let g=`<title id="chT">${t("km")}</title>`;
+  for(const v of [0,500,1000,1500]) g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${m.l-6}" y="${Y(v)+4}" text-anchor="end">${num(v)}</text>`;
+  s.forEach((r,i)=>{ if(r.m.endsWith("-01")) g+=`<text x="${X(i)}" y="${H-6}" text-anchor="start">${r.m.slice(0,4)}</text>`; });
+  const band=s.map((r,i)=>r.n?`${X(i)},${Y(r.f16)}`:null).filter(Boolean).join(" ")+" "+s.map((r,i)=>r.n?`${X(i)},${Y(r.f20)}`:null).filter(Boolean).reverse().join(" ");
+  g+=`<polygon points="${band}" fill="var(--flood)" opacity=".18"/>`;
+  const segs=[[]]; s.forEach((r,i)=>{ if(r.n) segs[segs.length-1].push(`${X(i)},${Y(r.f18)}`); else segs.push([]); });   // a month without scenes breaks the line
+  segs.filter(q=>q.length>1).forEach(q=>g+=`<polyline points="${q.join(" ")}" fill="none" stroke="var(--flood)" stroke-width="2.2"/>`);
+  D.events.forEach((e,j)=>{const i=s.findIndex(r=>r.m===e.m), left=e.key==="closed";
+    g+=`<line x1="${X(i)}" x2="${X(i)}" y1="${m.t}" y2="${H-m.b}" stroke="var(--event)" stroke-dasharray="3 3"/><text x="${X(i)+(left?-4:4)}" y="${m.t+8}" text-anchor="${left?"end":"start"}" style="fill:var(--event)">${t("ev_"+e.key)}</text>`;});
+  const r=s[idx]; g+=`<line x1="${X(idx)}" x2="${X(idx)}" y1="${m.t}" y2="${H-m.b}" stroke="var(--ink)" stroke-width="1.2"/>`;
+  if(r.n) g+=`<circle cx="${X(idx)}" cy="${Y(r.f18)}" r="4.5" fill="var(--gold1)" stroke="var(--bg)"/>`;
+  document.getElementById("chart").innerHTML=g;
+}
+function show(i){
+  idx=i; const r=D.series[i];
+  document.getElementById("slider").value=i;
+  document.getElementById("monthLabel").textContent=`${mname(r.m)}, ${r.n?num(r.f18)+" "+t("km"):t("nodata")}`;
+  chart();
+  if(map&&map.getSource("frame")&&r.n&&M.months.includes(r.m)) map.getSource("frame").updateImage({url:`data/maps/${r.m}.png`,coordinates:corners()});
+}
+function corners(){const b=M.box; return [[b[0],b[3]],[b[2],b[3]],[b[2],b[1]],[b[0],b[1]]];}
+function build(){
+  const b=M.box;
+  map=new maplibregl.Map({container:"map",attributionControl:{compact:true},
+    style:{version:8,sources:{esri:{type:"raster",tileSize:256,maxzoom:19,tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],attribution:"Imagery: Esri, Maxar, Earthstar Geographics"}},layers:[{id:"esri",type:"raster",source:"esri",paint:{"raster-saturation":-0.4,"raster-brightness-max":0.8}}]},
+    bounds:[[b[0],b[1]],[b[2],b[3]]],fitBoundsOptions:{padding:{left:innerWidth>900?440:10,right:20,top:20,bottom:innerWidth>900?230:innerHeight*.55}}});
+  map.addControl(new maplibregl.NavigationControl({showCompass:false}),"top-right");
+  map.once("style.load",()=>{
+    const first=D.series[idx].n?D.series[idx].m:M.months[0];
+    map.addSource("frame",{type:"image",url:`data/maps/${first}.png`,coordinates:corners()});
+    map.addLayer({id:"frame",type:"raster",source:"frame",paint:{"raster-opacity":.9,"raster-fade-duration":0}});
+  });
+}
+function playToggle(){
+  if(timer){clearInterval(timer);timer=null;}
+  else timer=setInterval(()=>show((idx+1)%D.series.length),700);
+  document.getElementById("play").textContent=timer?t("pause"):t("play");
+}
+document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{lang=b.dataset.lang;store.set("moj-lang",lang);render();});
+document.querySelectorAll("[data-th]").forEach(b=>b.onclick=()=>{theme=b.dataset.th;store.set("moj-theme",theme);document.documentElement.setAttribute("data-theme",theme);render();});
+document.getElementById("play").onclick=playToggle;
+document.getElementById("slider").oninput=e=>show(+e.target.value);
+Promise.all([fetch("data/series.json").then(r=>r.json()),fetch("data/maps.json").then(r=>r.json())]).then(([d,m])=>{
+  D=d; M=m; const s=document.getElementById("slider"); s.max=D.series.length-1;
+  idx=D.series.findIndex(r=>r.m==="2022-12"); render(); build();
+});
+render();
+</script>
+</body>
+</html>

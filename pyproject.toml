@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mojana-flood-sar"
+version = "0.1.0"
+description = "Monthly flood extent from Sentinel-1 over La Mojana, Colombia, before and after the 2021 Cara de Gato dike break, checked against Sentinel-2."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Lina María Quintero Fonseca"}]
+requires-python = ">=3.10"
+dependencies = ["pandas", "requests"]
+
+[project.optional-dependencies]
+build = ["earthengine-api", "numpy"]
+test = ["pytest>=7", "pandas"]
+
+[tool.setuptools]
+py-modules = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
