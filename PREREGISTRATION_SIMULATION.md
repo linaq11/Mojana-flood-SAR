@@ -44,3 +44,7 @@ Simulated flood: water deeper than 0.1 m outside permanent water (JRC occurrence
 ## What is reported
 
 Both hypotheses, all months, the calibrated n, the gauge conversion that was used and any deviation from this document, including failure.
+
+## Clarification, 2026-11-20, before any SWOT value was read
+
+SWOT nodes are taken from the SWOT River Database (SWORD) version 16 and read through the Hydrocron API, collection `SWOT_L2_HR_RiverSP_2.0`, whose node identifiers follow SWORD v16. Only observations with `node_q` of 0 or 1 (good or suspect) and a real `wse` value (not the fill value) are used. Each gauge is matched to the nodes within 2 km, all of them, on the same calendar day; the datum is the median over all matched node-days of that gauge.
