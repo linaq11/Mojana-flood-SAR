@@ -52,3 +52,7 @@ SWOT nodes are taken from the SWOT River Database (SWORD) version 16 and read th
 ## Clarification, 2026-11-20, before measuring the breach width
 
 The breach width is measured along a line digitized on the dike crest on the last cloud-free Sentinel-2 image before 27 August 2021, 1.5 km to each side of the dike cell nearest to the mapped breach. On every Sentinel-2 L2A scene with less than 20% cloud within 1 km of the breach (scene classification), the width is the length of the longest run of open water (MNDWI above 0) along that line. The monthly width is the median of the month's scenes. Months without such a scene take the previous width, as stated above. Planet images are used only if a month from August 2021 to December 2024 has no Sentinel-2 value.
+
+## Deviation, 2026-11-20, before any simulation was run: breach location
+
+The OpenStreetMap feature "Caregato" (8.1553° N, 74.7903° W) is not where the dike broke. Sentinel-2 images show the dike intact on 21 August 2021, river water pouring north through it on 25 September 2021, most of the river flowing through the gap on 12 February 2022 and a new embankment across it on 12 April 2024, at the apex of the Cauca bend about 6.4 km north-north-east of that point, near 8.212° N, 74.768° W (images in `data/breach/`). The simulation and the breach-width measurement use this location; the dike line for the width is digitized at it on the 21 August 2021 image. A first width run along the wrong stretch of dike gave widths of 0 to 30 m on almost every scene and is discarded.
