@@ -317,7 +317,7 @@ async function build3d(){
     fragmentShader:`uniform vec3 uLight; uniform float uTime; varying vec3 vP; varying float vH;
       void main(){ if(vH<0.03) discard;
         vec3 nrm=normalize(cross(dFdx(vP),dFdy(vP)));
-        nrm=normalize(nrm+0.06*vec3(sin(vP.x*.9+uTime*1.7),0.,cos(vP.z*.8-uTime*1.3)));   // small ripples
+        nrm=normalize(nrm+0.025*vec3(sin(vP.x*.31+vP.z*.17+uTime*1.3)+sin(vP.z*.23-uTime*.9),0.,cos(vP.z*.29-vP.x*.13-uTime*1.1)));   // soft ripples, two directions so they do not line up
         float d=smoothstep(0.,3.5,vH);
         vec3 col=mix(vec3(.56,.89,.94),vec3(.07,.25,.53),d);
         vec3 v=normalize(cameraPosition-vP), hv=normalize(uLight+v);
