@@ -30,6 +30,9 @@
 html,body{margin:0;height:100%;background:radial-gradient(ellipse 90% 80% at 68% 42%,var(--bg2),var(--bg) 75%) fixed var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
 #map,#three{position:fixed;inset:0}
 #three{display:block;width:100%;height:100%;touch-action:none}
+#bgmap,#tint{position:fixed;inset:0;pointer-events:none}
+#bgmap{filter:blur(5px) saturate(1.15);transform:scale(1.04)}   /* scaled a little so the blurred edges stay off screen */
+#tint{background:radial-gradient(ellipse 90% 80% at 68% 42%,color-mix(in srgb,var(--bg2) 38%,transparent),color-mix(in srgb,var(--bg) 72%,transparent) 80%)}
 #map.tool,#three.tool{cursor:crosshair}
 [hidden]{display:none!important}
 .ramp{display:inline-block;width:46px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle;background:linear-gradient(90deg,#3f8f3a,#e3d65a,#e8a33d,#7a4b33,#f2efe9)}
@@ -81,6 +84,7 @@ input[type=range]{flex:1;accent-color:var(--flood)}
 </head>
 <body>
 <canvas id="sim"></canvas>
+<div id="bgmap" aria-hidden="true"></div><div id="tint" aria-hidden="true"></div>
 <canvas id="three" role="img" aria-label="3D view of the terrain around the Cara de Gato breach with the simulated water"></canvas>
 <div id="map" role="img" aria-label="Map of La Mojana with the simulated flood water" hidden></div>
 <div class="ui">
@@ -270,7 +274,7 @@ function loadGrid(name){return grids[name]||(grids[name]=fetch(name).then(r=>r.j
 async function showScene(name){
   scene=name;
   document.querySelectorAll("[data-scene]").forEach(o=>o.setAttribute("aria-pressed",o.dataset.scene===name));
-  $("mapOnly").hidden=name!=="map"; $("map").hidden=name!=="map"; $("three").hidden=name!=="3d";
+  $("mapOnly").hidden=name!=="map"; $("map").hidden=name!=="map"; for(const id of ["three","bgmap","tint"]) $(id).hidden=name!=="3d";
   setup(await loadGrid(name==="3d"?"grid_breach.json":"grid.json"));
   if(name==="3d"){ if(!scene3) scene3=await build3d(); else scene3.rebuild(); }
   else { if(!map) buildMap(); else {map.resize(); setMapSources();} draw(); }
@@ -280,6 +284,11 @@ async function showScene(name){
 // ---- 3D sand table (three.js) ----
 async function build3d(){
   const THREE=await import("three"), {OrbitControls}=await import("three/addons/controls/OrbitControls.js");
+  // satellite image of the same area behind the table, blurred under a translucent tint
+  const gb=(await loadGrid("grid_breach.json")).box;
+  new maplibregl.Map({container:"bgmap",interactive:false,attributionControl:false,fadeDuration:0,
+    style:{version:8,sources:{esri:{type:"raster",tileSize:256,maxzoom:19,tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"]}},layers:[{id:"esri",type:"raster",source:"esri"}]},
+    bounds:[[gb[0]-0.12,gb[1]-0.05],[gb[2]+0.05,gb[3]+0.05]]});
   const canvas=$("three"), renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));
   const sc=new THREE.Scene(), cam=new THREE.PerspectiveCamera(38,1,1,5000);
