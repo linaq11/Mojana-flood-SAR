@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # region: the whole monitor box at about 275 m (map view); breach: a close-up around Cara de Gato at about 110 m (3D view)
 ZONES = {"region": ([-75.3, 7.9, -74.3, 9.0], 0.0025, "grid.json"),
          "breach": ([-75.03, 8.08, -74.68, 8.43], 0.001, "grid_breach.json")}
-BREACH = [-74.7903, 8.1553]          # OpenStreetMap feature "Caregato" (dam), San Jacinto del Cauca
+BREACH = [-74.768, 8.212]            # the gap seen on Sentinel-2 (open 25 Sep 2021, new embankment by 12 Apr 2024)
 
 
 def main() -> None:

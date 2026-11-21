@@ -56,3 +56,7 @@ The breach width is measured along a line digitized on the dike crest on the las
 ## Deviation, 2026-11-20, before any simulation was run: breach location
 
 The OpenStreetMap feature "Caregato" (8.1553° N, 74.7903° W) is not where the dike broke. Sentinel-2 images show the dike intact on 21 August 2021, river water pouring north through it on 25 September 2021, most of the river flowing through the gap on 12 February 2022 and a new embankment across it on 12 April 2024, at the apex of the Cauca bend about 6.4 km north-north-east of that point, near 8.212° N, 74.768° W (images in `data/breach/`). The simulation and the breach-width measurement use this location; the dike line for the width is digitized at it on the 21 August 2021 image. A first width run along the wrong stretch of dike gave widths of 0 to 30 m on almost every scene and is discarded.
+
+## Deviation, 2026-11-20, before any simulation was run: breach width
+
+The width measured as stated (longest run of open water along the pre-break dike line, `scripts/breach_width.py`, results in `data/breach/breach_scenes.csv`) does not measure the gap: once the dike broke, the river cut into the bank and took over the old dike line, so the run of water is 550 to 1,460 m on every scene and stays at about 640 m after the closure. The width is therefore not measured. The simulation opens the breach as one cell of the 275 m grid while it was open, which is the order of the 20 to 300 m reported by the press, and states that the real width is not resolved.
